@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add PPTs - CODE FEST</title>
+<style>
+:root {
+  --primary: #1e3c72;
+  --primary-light: #2a5298;
+  --danger: #f44336;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  background: linear-gradient(180deg,#eef2f7 0%,#f9fbff 100%);
+  color: #222;
+  overflow-x: hidden;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.site-header .logo { height: 50px; width: auto; }
+.site-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--primary);
+  letter-spacing: 1px;
+}
+
+header {
+  display:flex; justify-content: space-between; align-items:center;
+  padding: 15px 30px; background:#1e3c72; color:white;
+}
+header h1 { margin:0; font-size:24px; }
+header .logout { color:white; cursor:pointer; font-weight:600; text-decoration:underline; }
+
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 15px;
+}
+
+.card {
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+  margin-bottom:20px;
+}
+
+form input, form button {
+  display:block;
+  width:100%;
+  margin-bottom:12px;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+form button {
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  color:white;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+  transition: all 0.3s ease;
+}
+form button:hover { background: linear-gradient(90deg,var(--primary-light),var(--primary)); transform:translateY(-2px); }
+
+.ppt-item {
+  background:#f9fafc;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 1px 5px rgba(0,0,0,0.05);
+}
+.ppt-item span { flex:1; font-weight:600; }
+.ppt-item a {
+  margin-left:10px;
+  text-decoration:none;
+  color:var(--primary);
+  font-weight:600;
+}
+.ppt-item button {
+  margin-left:10px;
+  background:var(--danger);
+  color:white;
+  border:none;
+  padding:6px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:0.2s;
+}
+.ppt-item button:hover { transform:scale(1.05); }
+
+.search-input {
+  width:100%;
+  padding:10px;
+  margin-bottom:20px;
+  border-radius:8px;
+  border:1px solid #bbb;
+  font-size:15px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Add PPTs</h1>
+  <span class="logout" onclick="logout()">Logout</span>
+</header>
+
+<header class="site-header">
+  <img src="D:\\logo.png" alt="CODE FEST Logo" class="logo" />
+  <h1>CODE FEST</h1>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>Course: <span id="courseTitle"></span></h2>
+    <form id="pptForm">
+      <input type="text" id="pptTitle" placeholder="Enter PPT title or description" required>
+      <input type="file" id="pptFile" accept=".ppt,.pptx,.pdf" required>
+      <button type="submit">Upload PPT</button>
+    </form>
+  </div>
+
+  <input type="text" id="searchInput" class="search-input" placeholder="Search PPTs by title...">
+
+  <div id="pptList"></div>
+</div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+const courseId = new URLSearchParams(window.location.search).get("courseId");
+document.getElementById("courseTitle").textContent = courseId || "Unknown";
+
+function logout() {
+  localStorage.removeItem("user");
+  localStorage.removeItem("role");
+  window.location.href = "login.html";
+}
+
+// Load PPTs
+async function loadPPTs() {
+  try {
+    const res = await fetch(`${API_BASE}/courses/${courseId}`);
+    const course = await res.json();
+    const list = course.ppts || [];
+    const container = document.getElementById("pptList");
+    const search = document.getElementById("searchInput").value.toLowerCase();
+
+    container.innerHTML = list
+      .filter(p => p.title.toLowerCase().includes(search))
+      .map(p => `
+        <div class="ppt-item">
+          <span>${p.title || p.filename}</span>
+          <a href="${p.url}" target="_blank">Open</a>
+          <button onclick="removePPT('${p._id}')">Remove</button>
+        </div>
+      `).join("") || '<p style="color:#666;">No PPTs uploaded yet.</p>';
+  } catch(err){ console.error(err); }
+}
+
+// Upload PPT
+document.getElementById("pptForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const file = document.getElementById("pptFile").files[0];
+  const title = document.getElementById("pptTitle").value.trim();
+  if (!file || !title) return alert("⚠️ Please provide title and file.");
+
+  const formData = new FormData();
+  formData.append("ppt", file);
+  formData.append("title", title);
+
+  try {
+    const res = await fetch(`${API_BASE}/courses/${courseId}/add-ppt-file`, { method: "POST", body: formData });
+    if(res.ok){
+      const data = await res.json(); // returned new PPT data
+      const container = document.getElementById("pptList");
+      const div = document.createElement("div");
+      div.className = "ppt-item";
+      div.innerHTML = `
+        <span>${data.title}</span>
+        <a href="${data.url}" target="_blank">Open</a>
+        <button onclick="removePPT('${data._id}')">Remove</button>
+      `;
+      container.appendChild(div);
+      alert("✅ PPT uploaded!");
+      document.getElementById("pptForm").reset();
+    } else alert("❌ Upload failed.");
+  } catch(err){ console.error(err); alert("Upload failed."); }
+});
+
+// Remove PPT
+async function removePPT(pptId){
+  if(!confirm("Remove this PPT?")) return;
+  try {
+    const res = await fetch(`${API_BASE}/courses/${courseId}/remove-ppt/${pptId}`, { method:"DELETE" });
+    if(res.ok){
+      alert("✅ PPT removed");
+      loadPPTs();
+    } else alert("❌ Failed to remove PPT");
+  } catch(err){ console.error(err); }
+}
+
+document.getElementById("searchInput").addEventListener("input", loadPPTs);
+
+loadPPTs();
+</script>
+</body>
+</html>

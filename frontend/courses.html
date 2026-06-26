@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CODE FEST - Courses</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; }
+    header { background: #1e3c72; color: white; padding: 15px 30px; display: flex; justify-content: space-between; }
+    .course-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 30px; }
+    .course { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .course img { width: 100%; height: 150px; object-fit: cover; }
+    .course h3 { padding: 10px; margin: 0; }
+    .course button { background: #1e3c72; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+    .site-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.site-header .logo {
+  height: 50px;
+  width: auto;
+}
+
+.site-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1e3c72;
+  letter-spacing: 1px;
+}
+
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Explore Our Courses</h1>
+  <a href="index.html" style="color:white;text-decoration:none;">⬅ Back to Dashboard</a>
+</header>
+
+<div class="course-list">
+  <div class="course">
+    <img src="https://www.freecodecamp.org/news/content/images/2022/08/html-css-course.jpeg" alt="HTML & CSS">
+    <h3>HTML & CSS Basics</h3>
+    <button onclick="location.href='videos.html'">View Course</button>
+  </div>
+  <div class="course">
+    <img src="https://miro.medium.com/v2/resize:fit:1400/1*JSvG4w4sz2TtX8Qpzo-1Bg.png" alt="JavaScript">
+    <h3>JavaScript for Beginners</h3>
+    <button onclick="location.href='videos.html'">View Course</button>
+  </div>
+  <div class="course">
+    <img src="https://miro.medium.com/v2/resize:fit:1400/1*j7Pj9x7L4LPOlH1jlH2Cjw.png" alt="Node.js">
+    <h3>Node.js Fundamentals</h3>
+    <button onclick="location.href='videos.html'">View Course</button>
+  </div>
+  <div class="course">
+    <img src="https://www.python.org/static/community_logos/python-logo.png" alt="Python">
+    <h3>Python Programming</h3>
+    <button onclick="location.href='videos.html'">View Course</button>
+  </div>
+  <div class="course">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0a/SQL_Logo.svg" alt="SQL">
+    <h3>Databases with SQL</h3>
+    <button onclick="location.href='videos.html'">View Course</button>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Dashboard - CODE FEST</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* ----------------- GLOBAL THEME ----------------- */
+:root {
+  --primary: #0d6efd;
+  --primary-dark: #084cd1;
+  --bg: #eef2f7;
+  --card-bg: #fff;
+  --radius: 14px;
+  --shadow: 0 8px 24px rgba(0,0,0,0.08);
+  --text-dark: #1e1e1e;
+}
+
+/* Body */
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  background: var(--bg);
+  color: var(--text-dark);
+}
+
+/* ----------------- LAYOUT ----------------- */
+.container {
+  display: flex;
+  max-width: 1450px;
+  margin: auto;
+  gap: 28px;
+  padding: 32px;
+}
+
+/* ----------------- SIDEBAR ----------------- */
+/* .sidebar {
+  width: 320px;
+  height: 250px;
+  background: var(--card-bg);
+  padding: 28px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 32px;
+  text-align: center;
+  animation: fadeIn 0.7s ease;
+} */
+.sidebar h2 {
+  color: var(--primary);
+  margin: 14px 0 22px;
+  font-size: 1.3em;
+}
+.sidebar img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  border: 3.5px solid var(--primary);
+  object-fit: cover;
+  box-shadow: 0 0 15px rgba(13,110,253,0.35);
+  transition: transform .35s ease;
+}
+.sidebar img:hover {
+  transform: scale(1.08);
+}
+/* EDIT MY PROFILE BUTTON - PREMIUM STYLE */
+.sidebar button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #0d6efd, #0b52dd);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.3);
+  transition: all 0.3s ease;
+}
+
+.sidebar button:hover {
+  background: linear-gradient(135deg, #084cd1, #063bb0);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(13, 110, 253, 0.45);
+}
+
+.sidebar button:active {
+  transform: scale(0.96);
+}
+
+/* ----------------- MAIN ----------------- */
+.main-content { flex: 1; }
+
+/* Banner */
+/* Course Banner – clean & modern */
+.course-banner {
+  height: auto;
+  border-radius: var(--radius);
+  background: none;
+  padding: 10px 5px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 4px solid #0d6efd; /* 🔥 elegant blue strip */
+  padding-left: 12px;
+}
+
+/* Title with a subtle bottom highlight */
+.course-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0d6efd;
+  letter-spacing: 0.5px;
+  margin-left: 5px;
+  position: relative;
+  padding-bottom: 3px;
+}
+
+/* Soft underline hover glow */
+.course-title:hover {
+  color: #084298; /* darker blue */
+  cursor: default;
+}
+
+.course-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0%;
+  height: 3px;
+  background: #0d6efd;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.course-title:hover::after {
+  width: 60%; /* cool underline animation */
+}
+
+/* Optional soft shadow under banner */
+.course-banner:hover {
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+  transition: 0.3s ease;
+}
+/* ----------------- SECTIONS ----------------- */
+.section h2 {
+  color: var(--primary);
+  border-left: 6px solid var(--primary-dark);
+  padding-left: 14px;
+  margin-bottom: 22px;
+  font-size: 1.4em;
+}
+
+/* ----------------- MEDIA CARDS ----------------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+  gap: 24px;
+}
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+  transition: transform .32s ease, box-shadow .32s ease;
+  cursor: pointer;
+}
+.card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 14px 30px rgba(0,0,0,.18);
+}
+
+/* Video inside card */
+.card video {
+  width: 100%;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  transition: transform .32s ease;
+}
+.card:hover video {
+  transform: scale(1.05);
+}
+
+/* Module Title */
+.card h3 {
+  background: linear-gradient(135deg,#0d6efd,#084cd1);
+  padding: 10px 16px;
+  border-radius: 10px;
+  color: #fff;
+  display: inline-block;
+  font-size: 1em;
+  margin-bottom: 14px;
+  font-weight: 600;
+  letter-spacing: .4px;
+}
+
+/* Progress Bar */
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: #dce2eb;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+.progress-bar-fill {
+  width: 0%;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 5px;
+}
+
+/* PPT Download Button */
+.download-link {
+  background: var(--primary);
+  display: inline-block;
+  color: #fff;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: .25s;
+}
+.download-link:hover {
+  background: var(--primary-dark);
+}
+
+/* Assessment Container */
+#assessmentContainer {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 38px;
+}
+#startAssessmentBtn {
+  padding: 14px 26px;
+  border: none;
+  background: linear-gradient(135deg,#084cd1,#0d6efd);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all .3s ease;
+  display: none;
+}
+#startAssessmentBtn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(13,110,253,0.45);
+}
+#startAssessmentBtn:active {
+  transform: scale(.96);
+}
+
+/* Styled Radio Buttons */
+.styled-radio label {
+  border-radius: 50px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media(max-width:1024px){
+  .container { flex-direction: column; }
+  .sidebar { width: 100%; top: unset; }
+}
+
+.logout-btn {
+  background: #d9534f;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  margin-top: 20px;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #c9302c;
+  transform: translateY(-2px);
+}
+
+</style>
+</head>
+
+<body>
+  
+
+<div class="container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- <img id="profileImage" src="default-profile.png"> -->
+    <h2 id="welcomeName">Loading...</h2>
+    <button onclick="window.location.href='myprofile.html'">Edit My Profile</button>
+    <button id="logoutBtn" class="logout-btn">&#x1F6AA; Logout</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div id="course-banner" class="course-banner">
+      <div id="courseTitle" class="course-title"></div>
+    </div>
+    
+    <div id="assessmentContainer">
+      <button id="startAssessmentBtn" style="display:none;">Start Assessment</button>
+      <p id="assessmentStatus">Loading assessment...</p>
+    </div>
+
+    <div class="section">
+      <h2>🎥 Course Videos</h2>
+      <div id="video-list" class="card-grid">Loading...</div>
+    </div>
+
+    <div class="section">
+      <h2>📂 PPT Files</h2>
+      <div id="ppt-list" class="card-grid">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Example Styled Question -->
+<!-- <div class="styled-radio">
+  <input type="radio" id="yes" name="disability" value="Yes">
+  <label for="yes">Yes</label>
+  
+  <input type="radio" id="no" name="disability" value="No">
+  <label for="no">No</label>
+</div> -->
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+const courseId = new URLSearchParams(window.location.search).get("course");
+const studentId = localStorage.getItem("studentId");
+
+if (!studentId) window.location.href = "login.html";
+
+/* ✅ Profile */
+async function loadProfile() {
+  try {
+    const res = await fetch(`${API_BASE}/students/${studentId}`);
+    const student = await res.json();
+    document.getElementById("welcomeName").textContent =
+      `Welcome, ${student.name || "Student"}`;
+    document.getElementById("profileImage").src =
+      student.profileImage ? `${API_BASE}${student.profileImage}` : "default-profile.png";
+  } catch (err) { console.warn(err); }
+}
+
+/* ✅ Course */
+async function loadCourse() {
+  try {
+    const res = await fetch(`${API_BASE}/courses/${courseId}`);
+    const course = await res.json();
+
+    document.getElementById("courseTitle").textContent = course.title;
+
+
+    const vid = document.getElementById("video-list");
+    vid.innerHTML = course.videos?.length ?
+      course.videos.map(v=>`
+        <div class="card">
+          <div class="card-content">
+            <h3>${v.title}</h3>
+            <video controls src="http://localhost:5000${v.url}"></video>
+            <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+          </div>
+        </div>`).join("") :
+      "<p>No videos uploaded.</p>";
+
+    const ppt = document.getElementById("ppt-list");
+    ppt.innerHTML = course.pptFiles?.length ?
+      course.pptFiles.map(p=>`
+        <div class="card">
+          <div class="card-content">
+            <h3>${p.filename}</h3>
+            <a class="download-link" target="_blank" href="http://localhost:5000${p.url}">Download PPT</a>
+          </div>
+        </div>`).join("") :
+      "<p>No PPT files.</p>";
+  } catch {}
+}
+
+/* ✅ Assessment */
+async function loadAssessment() {
+  const btn = document.getElementById("startAssessmentBtn");
+  const msg = document.getElementById("assessmentStatus");
+  
+  try {
+    const res = await fetch(`${API_BASE}/assessments/student/${courseId}`);
+    const data = await res.json();
+
+    if (data.success && data.questions?.length > 0) {
+      msg.style.display = "none";
+      btn.style.display = "inline-block";
+      btn.onclick = ()=> window.location.href = `stuquiz.html?courseId=${courseId}`;
+    }
+  } catch{}
+}
+document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "login.html";
+});
+
+
+
+/* INIT */
+document.addEventListener("DOMContentLoaded", ()=>{
+  loadProfile();
+  loadCourse();
+  loadAssessment();
+});
+</script>
+
+</body>
+</html>

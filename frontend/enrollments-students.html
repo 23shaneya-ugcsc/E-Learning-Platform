@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Course Enrollments</title>
+  <style>
+    body { font-family: Arial; background:#f3f4f6; margin:0; }
+    header { background:#1e3c72; color:white; padding:15px; text-align:center; }
+    .course-block { margin:20px; padding:15px; background:white; border:1px solid #ddd; border-radius:8px; }
+    h2 { margin:0 0 10px; }
+  </style>
+</head>
+<body>
+<header><h1>Enrolled Students</h1></header>
+<div id="enrollmentsContainer"></div>
+<script>
+const API_BASE = "http://localhost:5000/api";
+async function loadEnrollments() {
+  const [coursesRes, enrollmentsRes] = await Promise.all([
+    fetch(`${API_BASE}/courses`),
+    fetch(`${API_BASE}/enrollments`)
+  ]);
+  const courses = await coursesRes.json();
+  const enrollments = await enrollmentsRes.json();
+  const container = document.getElementById("enrollmentsContainer");
+  container.innerHTML = "";
+  for (const c of courses) {
+    const enrolled = enrollments.filter(e => e.courseId === c._id);
+    container.innerHTML += `
+      <div class="course-block">
+        <h2>${c.title}</h2>
+        <ul>${enrolled.map(s => `<li>${s.fullName} (${s.email})</li>`).join("")}</ul>
+      </div>`;
+  }
+}
+loadEnrollments();
+</script>
+</body>
+</html>

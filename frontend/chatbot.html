@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CODE FEST - Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #1e3c72;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header .icons {
+      display: flex;
+      gap: 10px;
+    }
+    header button {
+      background: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      color: #1e3c72;
+    }
+    #chatbox {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 70%;
+      position: relative;
+      font-size: 15px;
+    }
+    .timestamp {
+      font-size: 10px;
+      color: #666;
+      margin-top: 3px;
+      text-align: right;
+    }
+    .user {
+      background: #1e3c72;
+      color: white;
+      align-self: flex-end;
+    }
+    .bot {
+      background: #e5e5e5;
+      color: black;
+      align-self: flex-start;
+    }
+    .bot .reactions {
+      margin-top: 5px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    #inputArea {
+      display: flex;
+      padding: 10px;
+      background: #fff;
+      border-top: 1px solid #ccc;
+    }
+    #inputArea input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #inputArea button {
+      margin-left: 10px;
+      padding: 10px 15px;
+      border: none;
+      background: #1e3c72;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    🤖 CODE FEST Chatbot
+    <div class="icons">
+      <button onclick="window.location.href='index.html'">🏠 Home</button>
+      <button onclick="showFAQ()">📖 FAQ</button>
+      <button onclick="clearChat()">🗑️ Clear</button>
+    </div>
+  </header>
+
+  <div id="chatbox"></div>
+  
+  <div id="inputArea">
+    <input type="text" id="userInput" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const chatbox = document.getElementById("chatbox");
+
+    function getTime() {
+      const now = new Date();
+      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function addMessage(text, sender, reactions = false) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+
+      msg.innerHTML = `
+        <div>${text}</div>
+        <div class="timestamp">${getTime()}</div>
+      `;
+
+      if (sender === "bot" && reactions) {
+        const reactionDiv = document.createElement("div");
+        reactionDiv.classList.add("reactions");
+        reactionDiv.innerHTML = "👍 ❤️ 😂 👎";
+        msg.appendChild(reactionDiv);
+      }
+
+      chatbox.appendChild(msg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage(text, "user");
+      input.value = "";
+
+      // Bot replies
+      let reply = "❓ Sorry, I didn’t understand that. Type 'FAQ' to see available options.";
+      if (text.toLowerCase().includes("hello")) {
+        reply = "Hello 👋! How can I help you today?";
+      }
+      else if (text.toLowerCase().includes("hi")) {
+        reply = "Hii! Tell me";
+      }
+      else if (text.toLowerCase().includes("courses")) {
+        reply = "📚 We offer:\n1. HTML&CSS\n2. Python\n3. Node JS\n4. API and so on";
+      }
+      else if (text.toLowerCase().includes("rating")) {
+        reply = "⭐ Our average course rating is 4.7/5 from 10,000+ students!";
+      }
+      else if (text.toLowerCase().includes("university")) {
+        reply = "🎓 Our partners include MIT, Stanford, and Harvard University.";
+      }
+      else if (text.toLowerCase().includes("faq")) {
+        reply = "📖 You can ask me about:\n- Courses\n- Rating\n- University\n- Events\n- Support";
+      }
+      else if (text.toLowerCase().includes("events")) {
+        reply = "🎉 Upcoming Events:\n1. Hackathon - Oct 2025\n2. AI Bootcamp - Nov 2025\n3. Web Dev Summit - Dec 2025";
+      }
+      else if (text.toLowerCase().includes("login")) {
+  reply = "🔐 Redirecting to Login Page...";
+  setTimeout(() => window.location.href = "login.html", 800);
+}
+
+else if (text.toLowerCase().includes("register")) {
+  reply = "📝 Opening Registration Page...";
+  setTimeout(() => window.location.href = "register.html", 800);
+}
+
+else if (text.toLowerCase().includes("signup")) {
+  reply = "📝 Opening Registration Page...";
+  setTimeout(() => window.location.href = "register.html", 800);
+}
+
+else if (text.toLowerCase().includes("issue")) {
+  reply = "🛠️ If you have an issue, please email: support@codefest.com";
+}
+
+else if (text.toLowerCase().includes("mail")) {
+  reply = "📩 Contact us at: support@codefest.com";
+}
+
+else if (text.toLowerCase().includes("contact")) {
+  reply = "📞 You can reach us at: support@codefest.com";
+}
+else if (text.toLowerCase().includes("platform") || 
+         text.toLowerCase().includes("about") || 
+         text.toLowerCase().includes("website")) {
+
+  reply = "✨ Welcome to CODE FEST — Your Complete E-Learning Platform!\n\n" +
+          "CODE FEST helps students learn through structured courses, assessments, and certifications.\n\n" +
+          "🔹 Features:\n" +
+          "• Free courses\n" +
+          "• Assessments & certificates\n" +
+          "• Student & admin dashboards\n\n" +
+          "Feel free to ask anything you need! 😊";
+}
+
+      
+      setTimeout(() => addMessage(reply, "bot", true), 500);
+    }
+
+    function showFAQ() {
+      addMessage("📖 FAQ Options:\n- Hello\n- Courses\n- Rating\n- University\n- Events\n- Support", "bot", true);
+    }
+
+    function clearChat() {
+      chatbox.innerHTML = "";
+      addMessage("🗑️ Chat cleared!", "bot");
+    }
+  </script>
+</body>
+</html>

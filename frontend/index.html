@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CODE FEST - Learn to Code</title>
+  <style>
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:#f9f9f9; color:#333; }
+
+    /* HEADER */
+    header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:15px 40px; background:#1e3c72; color:white; position:sticky; top:0; z-index:1000;
+    }
+    header h1 { margin:0; font-size:22px; }
+    nav a { margin:0 15px; text-decoration:none; color:white; font-weight:500; }
+    .buttons button {
+      background:orange; border:none; padding:8px 15px; margin-left:8px;
+      cursor:pointer; border-radius:5px; font-weight:bold;
+    }
+
+    /* HERO */
+    .hero {
+      background:linear-gradient(to right,#1e3c72,#2a5298);
+      color:white; padding:80px 20px; text-align:center;
+    }
+    .hero h2 { font-size:42px; margin-bottom:15px; }
+    .hero p { font-size:18px; margin-bottom:25px; }
+    .hero .cta-btn {
+      padding:12px 25px; background:orange; color:black;
+      border:none; border-radius:6px; font-size:18px; cursor:pointer;
+    }
+
+    /* SECTIONS */
+    section { padding:60px 40px; }
+    .section-title { text-align:center; margin-bottom:30px; font-size:28px; color:#1e3c72; }
+
+    /* COURSE GRID */
+    .course-search { text-align:center; margin-bottom:20px; }
+    .course-search input {
+      padding:10px; width:50%; max-width:400px; border:1px solid #ccc;
+      border-radius:8px; font-size:16px;
+    }
+    .courses {
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:20px;
+    }
+    .card {
+      background:#fff; border-radius:12px; padding:20px;
+      text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      transition:transform 0.2s;
+    }
+    .card:hover { transform:translateY(-5px); }
+    .card h3 { margin:10px 0; color:#1e3c72; }
+    .card p { font-size:15px; min-height:50px; }
+    .card button {
+      margin-top:10px; padding:8px 16px; background:#1e3c72;
+      color:white; border:none; border-radius:6px; cursor:pointer;
+    }
+
+    /* FEATURES, TESTIMONIALS, FAQ */
+    .features,.testimonials,.faq {
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px;
+    }
+    .partners img { width:120px; margin:15px; }
+    .testimonials .card { font-style:italic; background:#f3f4f6; }
+    .faq .card { text-align:left; }
+
+    footer {
+      background:#1e3c72; color:white; text-align:center; padding:30px;
+    }
+    footer a { color:orange; text-decoration:none; }
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      background: white;
+      padding: 10px 0;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .site-header .logo {
+      height: 50px;
+      width: auto;
+    }
+    .site-header h1 {
+      font-size: 28px;
+      font-weight: bold;
+      color: #1e3c72;
+      letter-spacing: 1px;
+    }
+
+    /* 💬 CHATBOT BUTTON */
+    .chatbot-btn {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: #1e3c72;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 65px;
+      height: 65px;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 9999;
+    }
+    .chatbot-btn:hover {
+      background: orange;
+      color: #1e3c72;
+      transform: scale(1.1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .chatbot-tooltip {
+      position: absolute;
+      bottom: 80px;
+      right: 0;
+      background: #1e3c72;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    .chatbot-btn:hover .chatbot-tooltip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <img src="D:\\logo.png" alt="CODE FEST Logo" class="logo" />
+    <h1>CODE FEST</h1>
+  </header>
+
+  <!-- HEADER -->
+  <header>
+    <h1>CODE FEST</h1>
+    <nav>
+      <a href="#courses">Courses</a>
+      <a href="#features">Features</a>
+      <a href="#partners">Partners</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="buttons">
+      <button onclick="location.href='login.html'">Login</button>
+      <button onclick="location.href='register.html'">Register</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h2>“Empowering Coders, One Quiz at a Time”</h2>
+    <p>Master coding with fun quizzes, interactive lessons, and real-world projects.</p>
+    <button class="cta-btn" onclick="document.getElementById('courses').scrollIntoView()">Explore Courses</button>
+  </div>
+
+  <!-- COURSES -->
+  <section id="courses">
+    <h2 class="section-title">📚 Popular Courses</h2>
+    <div class="course-search">
+      <input type="text" id="searchBox" placeholder="🔍 Search for a course..." onkeyup="filterCourses()"/>
+    </div>
+    <div class="courses" id="courseContainer">
+      <!-- Courses will load here from DB -->
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <h2 class="section-title">✨ Why Choose CODE FEST?</h2>
+    <div class="features">
+      <div class="card"><h3>📈 Track Progress</h3><p>Monitor your scores, achievements, and certificates as you grow.</p></div>
+      <div class="card"><h3>👨‍🏫 Expert Instructors</h3><p>Learn from industry professionals and top university professors.</p></div>
+      <div class="card"><h3>🌍 Global Community</h3><p>Connect with coders worldwide and collaborate on projects.</p></div>
+      <div class="card"><h3>🎓 Certification</h3><p>Earn certificates on completion to boost your career profile.</p></div>
+    </div>
+  </section>
+
+  <!-- PARTNERS -->
+  <section id="partners" class="partners">
+    <h2 class="section-title">🎓 Our University Partners</h2>
+    <div>
+      <img src="D:\\Main Project 25-26\\hardvest.png" alt="Harvard">
+      <img src="D:\\Main Project 25-26\\oxford.png" alt="Stanford">
+      <img src="D:\\Main Project 25-26\\standford.png" alt="Oxford">
+      <img src="D:\\Main Project 25-26\\mit.png" alt="MIT">
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials">
+    <h2 class="section-title">⭐ What Our Students Say</h2>
+    <div class="testimonials">
+      <div class="card">“CODE FEST helped me crack my coding interviews with confidence!” – Priya</div>
+      <div class="card">“The quizzes are fun and interactive, just like playing a game.” – Rahul</div>
+      <div class="card">“Great mentors and amazing community. Highly recommend!” – Sneha</div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <h2 class="section-title">❓ Frequently Asked Questions</h2>
+    <div class="faq">
+      <div class="card"><h3>How do I enroll in a course?</h3><p>Click on the course card, login/register, then enroll.</p></div>
+      <div class="card"><h3>Are certificates free?</h3><p>Yes, certificates are awarded free upon passing the assessments.</p></div>
+      <div class="card"><h3>Can I access courses offline?</h3><p>Yes, download slides & notes to continue learning without internet.</p></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2025 CODE FEST | Built for coders, by coders 💻</p>
+    <p>Contact: <a href="mailto:support@codefest.com">support@codefest.com</a></p>
+  </footer>
+
+  <!-- 💬 CHATBOT BUTTON -->
+  <button class="chatbot-btn" onclick="window.location.href='chatbot.html'">
+    💬
+    <span class="chatbot-tooltip">Chat with CodeBot</span>
+  </button>
+
+  <!-- JS -->
+  <script>
+    // Fetch courses from backend
+    async function loadCourses() {
+      try {
+        const res = await fetch("http://localhost:5000/api/courses");
+        const courses = await res.json();
+        const container = document.getElementById("courseContainer");
+        container.innerHTML = "";
+        courses.forEach(course => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <img src="${course.image}" alt="${course.title}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;"/>
+            <h3>${course.title}</h3>
+            <p>${course.description}</p>
+            <button onclick="viewCourse('${course._id}')">View Details</button>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Error loading courses:", err);
+      }
+    }
+
+    // Filter courses
+    function filterCourses() {
+      const search = document.getElementById("searchBox").value.toLowerCase();
+      const cards = document.querySelectorAll(".courses .card");
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(search) ? "block" : "none";
+      });
+    }
+
+    // View course details
+    function viewCourse(courseId) {
+      const isLoggedIn = localStorage.getItem("user");
+      if (!isLoggedIn) {
+        alert("Please login or register to view course details.");
+        location.href = "login.html";
+      } else {
+        location.href = `course-details.html?id=${courseId}`;
+      }
+    }
+
+    window.onload = loadCourses;
+  </script>
+</body>
+</html>

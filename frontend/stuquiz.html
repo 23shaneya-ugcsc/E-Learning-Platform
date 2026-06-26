@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CODE FEST - Student Quiz</title>
+  <style>
+    :root {
+      --deep-blue: #1e3c72;
+      --accent-blue: #2a5298;
+      --card-bg: #fff;
+      --muted: #6b7280;
+      --success: #10b981;
+      --danger: #ef4444;
+      --light: #f9fbff;
+      --glass-shadow: 0 8px 30px rgba(30,60,114,0.12);
+    }
+    html,body {height:100%;}
+    body {
+      margin:0;
+      font-family:"Roboto",Arial,sans-serif;
+      background:linear-gradient(135deg,var(--deep-blue),var(--accent-blue));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      color:#111827;
+    }
+    .site-header {
+      position:fixed;
+      top:12px;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      gap:12px;
+      align-items:center;
+      background:rgba(255,255,255,0.95);
+      padding:8px 14px;
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.12);
+      z-index:50;
+    }
+    .site-header h1 {
+      margin:0;
+      color:var(--deep-blue);
+      font-size:18px;
+      letter-spacing:1px;
+    }
+    .quiz-container {
+      width:100%;
+      max-width:760px;
+      background:var(--card-bg);
+      border-radius:14px;
+      padding:22px;
+      box-shadow:var(--glass-shadow);
+      margin-top:70px;
+    }
+    .quiz-header {display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+    .progress-wrap{width:100%;height:10px;background:#eef2ff;border-radius:999px;overflow:hidden;margin:12px 0;}
+    .progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--deep-blue),var(--accent-blue));transition:width .3s ease;}
+    .question{font-weight:700;margin-bottom:12px;font-size:18px;color:#0f172a;}
+    .options{display:flex;flex-direction:column;gap:10px;}
+    .option-btn{
+      padding:12px 14px;border-radius:10px;border:1px solid #dbeafe;background:var(--light);
+      cursor:pointer;font-size:15px;transition:transform .12s,box-shadow .12s,background .12s;
+      box-shadow:0 2px 6px rgba(16,24,40,0.04);
+    }
+    .option-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(30,60,114,0.08);}
+    .option-btn[disabled]{cursor:default;opacity:0.95;transform:none;box-shadow:none;}
+    .option-btn.correct{background:#dcfce7;border-color:#16a34a;color:#064e3b;font-weight:700;}
+    .option-btn.wrong{background:#fee2e2;border-color:#ef4444;color:#7f1d1d;font-weight:700;}
+    .controls{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap;}
+    .btn{
+      padding:10px 14px;border-radius:10px;border:none;cursor:pointer;
+      background:linear-gradient(90deg,var(--deep-blue),var(--accent-blue));color:white;font-weight:700;
+    }
+    .btn.secondary{background:#eef2ff;color:var(--deep-blue);}
+    .badge{padding:8px 12px;border-radius:999px;font-weight:700;font-size:14px;}
+    .timer-badge{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .score-badge{background:rgba(34,197,94,0.12);color:#064e3b;}
+    #results{margin-top:18px;}
+    .alert-success{background:#ecfdf5;border-left:4px solid #10b981;padding:12px 14px;border-radius:8px;color:#065f46;}
+    .alert-error{background:#fff1f2;border-left:4px solid #ef4444;padding:12px 14px;border-radius:8px;color:#7f1d1d;}
+    #certificate, #retakeSection {
+      display:none;margin-top:16px;background:linear-gradient(180deg,#ecfeff,#f0f9ff);
+      padding:16px;border-radius:10px;border:1px solid rgba(42,82,152,0.06);text-align:center;
+    }
+    #certificate h3{margin:0 0 8px 0;color:#065f46;}
+    @media(max-width:560px){.quiz-container{padding:16px;}.question{font-size:16px;}}
+  </style>
+</head>
+<body>
+  <div class="site-header">
+    <img src="D:\\logo.png" alt="CODE FEST Logo" style="height:36px;border-radius:6px;"/>
+    <h1>CODE FEST</h1>
+  </div>
+
+  <div class="quiz-container" id="quizContainer">
+    <div class="quiz-header">
+      <h2 id="assessmentTitle">Loading assessment...</h2>
+      <div class="meta">
+        <div id="progressText">Q0 / Q0</div>
+        <div style="margin-top:6px;">
+          <span id="timerBadge" class="badge timer-badge" style="display:none;">Time: <span id="time">15</span>s</span>
+          <span id="scoreBadge" class="badge score-badge">Score: <span id="liveScore">0</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div id="quiz"><p style="text-align:center;color:var(--muted);">Loading questions...</p></div>
+
+    <div class="controls" id="controls" style="display:none;">
+      <button id="prevBtn" class="btn secondary">Previous</button>
+      <button id="nextBtn" class="btn secondary">Next</button>
+      <button id="submitBtn" class="btn" disabled>Submit Assessment</button>
+    </div>
+
+    <div id="results"></div>
+
+    <div id="certificate">
+      <h3>🎉 Congratulations, You Passed!</h3>
+      <p id="certText"></p>
+      <button class="btn" id="certificateBtn">Get Certificate</button>
+    </div>
+
+    <div id="retakeSection">
+      <h3>😔 You didn’t pass this time.</h3>
+      <p>Score at least 60% to earn your certificate.</p>
+      <button class="btn" id="retakeBtn">Retake Test</button>
+    </div>
+  </div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+const urlParams = new URLSearchParams(window.location.search);
+const courseId = urlParams.get("courseId");
+const studentId = localStorage.getItem("studentId");
+
+if (!studentId || !courseId) {
+  alert("Missing required data. Redirecting...");
+  window.location.href = "student-dashboard.html";
+  throw new Error("Missing Student or Course ID.");
+}
+
+let assessmentData = null, currentIndex = 0, selections = [], liveScore = 0, timer = null;
+const questionTimeSec = 15;
+const quizDiv = document.getElementById("quiz");
+const assessmentTitle = document.getElementById("assessmentTitle");
+const progressText = document.getElementById("progressText");
+const progressBar = document.getElementById("progressBar");
+const timerBadge = document.getElementById("timerBadge");
+const timeEl = document.getElementById("time");
+const liveScoreEl = document.getElementById("liveScore");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const submitBtn = document.getElementById("submitBtn");
+const controls = document.getElementById("controls");
+const resultsDiv = document.getElementById("results");
+const certDiv = document.getElementById("certificate");
+const retakeDiv = document.getElementById("retakeSection");
+const certText = document.getElementById("certText");
+
+// 🧠 Fetch assessment questions
+async function fetchQuestions() {
+  try {
+    const res = await fetch(`${API_BASE}/assessments/student/${courseId}`);
+    const data = await res.json();
+    if (!data.success || !data.questions?.length) {
+      quizDiv.innerHTML = `<div style="color:red;text-align:center;">${data.message || 'Assessment not found.'}</div>`;
+      return;
+    }
+    assessmentData = data;
+    selections = new Array(data.questions.length).fill(null);
+    assessmentTitle.textContent = data.title || "Assessment";
+    renderQuestion(0);
+    controls.style.display = "flex";
+    submitBtn.disabled = false;
+  } catch {
+    quizDiv.innerHTML = `<div style="color:red;text-align:center;">Unable to load questions.</div>`;
+  }
+}
+
+// 🧩 Render Question
+function renderQuestion(index) {
+  clearTimer();
+  const q = assessmentData.questions[index];
+  timerBadge.style.display = "inline-block";
+  timeEl.innerText = questionTimeSec;
+  const opts = q.options.map((opt, i) =>
+    `<button class="option-btn" data-idx="${i}" onclick="onSelectOption(${index},${i})">${opt}</button>`
+  ).join("");
+  quizDiv.innerHTML = `<div class="question">Q${index+1}: ${q.question}</div><div class="options">${opts}</div>`;
+  if (selections[index] !== null) markPreviousSelection(q, selections[index]);
+  startTimer(questionTimeSec, () => onTimeUp(index));
+  updateProgress();
+}
+
+// Restore answered question visual
+function markPreviousSelection(q, selIdx) {
+  const buttons = document.querySelectorAll('.option-btn');
+  const correctIndex = getCorrectIndex(q);
+  buttons.forEach(btn=>{
+    btn.disabled=true;
+    const idx = Number(btn.dataset.idx);
+    if (idx===correctIndex) btn.classList.add('correct');
+    if (idx===selIdx && selIdx!==correctIndex) btn.classList.add('wrong');
+  });
+}
+
+// Timer handling
+function startTimer(sec,onEnd){let remain=sec;timeEl.textContent=remain;
+  timer=setInterval(()=>{remain--;timeEl.textContent=remain;if(remain<=0){clearTimer();onEnd();}},1000);}
+function clearTimer(){if(timer){clearInterval(timer);timer=null;}}
+
+function getCorrectIndex(q){
+  if (q.correctIndex !== undefined) return q.correctIndex;
+  if (q.answerIndex !== undefined) return q.answerIndex;
+  if (q.answer !== undefined) return q.answer; // <-- Fix here
+  return -1;
+}
+
+
+// When selecting
+window.onSelectOption=function(qIdx,optIdx){
+  const q=assessmentData.questions[qIdx];
+  const correctIndex=getCorrectIndex(q);
+  const buttons=document.querySelectorAll('.option-btn');
+  if(selections[qIdx]!==null)return;
+  selections[qIdx]=optIdx;
+  buttons.forEach(btn=>btn.disabled=true);
+  buttons.forEach(btn=>{
+    const idx=Number(btn.dataset.idx);
+    if(idx===correctIndex)btn.classList.add('correct');
+    if(idx===optIdx && optIdx!==correctIndex)btn.classList.add('wrong');
+  });
+  if(optIdx===correctIndex){liveScore++;liveScoreEl.textContent=liveScore;}
+  clearTimer();
+  setTimeout(()=>{if(currentIndex<assessmentData.questions.length-1)goToQuestion(currentIndex+1);},700);
+};
+
+// Time Up
+function onTimeUp(qIdx){
+  const q=assessmentData.questions[qIdx];
+  const correctIndex=getCorrectIndex(q);
+  const btns=document.querySelectorAll('.option-btn');
+  btns.forEach(b=>{b.disabled=true;if(Number(b.dataset.idx)===correctIndex)b.classList.add('correct');});
+  setTimeout(()=>{if(currentIndex<assessmentData.questions.length-1)goToQuestion(currentIndex+1);},800);
+}
+
+function goToQuestion(idx){if(idx<0||idx>=assessmentData.questions.length)return;currentIndex=idx;renderQuestion(idx);}
+prevBtn.onclick=()=>{if(currentIndex>0)goToQuestion(currentIndex-1);}
+nextBtn.onclick=()=>{if(currentIndex<assessmentData.questions.length-1)goToQuestion(currentIndex+1);}
+
+function updateProgress(){
+  const total=assessmentData.questions.length;
+  progressText.textContent=`Q${currentIndex+1} / Q${total}`;
+  progressBar.style.width=`${(currentIndex/total)*100}%`;
+  liveScoreEl.textContent=liveScore;
+}
+
+// Submit
+submitBtn.onclick=async()=>{
+  const unanswered=selections.some(s=>s===null);
+  if(unanswered&&!confirm("Some questions are unanswered. Submit anyway?"))return;
+  submitBtn.disabled=true;submitBtn.textContent="Submitting...";
+  try{
+    const res=await fetch(`${API_BASE}/submissions`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({studentId,courseId,assessmentId:assessmentData._id,answers:selections.map(v=>v??-1)})
+    });
+    const data=await res.json();
+    document.getElementById('quiz').style.display='none';
+    controls.style.display='none';
+    const total=assessmentData.questions.length;
+    const score=data.success?data.score:liveScore;
+    const percent=(score/total)*100;
+    resultsDiv.innerHTML=`<div class="alert-success">✅ Assessment Submitted!<br><strong>Your Score: ${score} / ${total}</strong> (${percent.toFixed(2)}%)</div>`;
+    if (percent >= 60) {
+  certDiv.style.display = 'block';
+  certText.textContent = `You passed with ${percent.toFixed(2)}%!`;
+  
+  localStorage.setItem("quizScore", score);
+  localStorage.setItem("quizTotal", total);
+
+  // ⭐ Save completed course to database
+  try {
+    await fetch(`${API_BASE}/students/${studentId}/complete-course`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        courseId: courseId,
+        courseName: assessmentData.title
+      })
+    });
+  } catch (err) {
+    console.error("Failed to save completed course:", err);
+  }
+
+} else {
+  retakeDiv.style.display='block';
+}
+
+  }catch(e){
+    resultsDiv.innerHTML=`<div class="alert-error">❌ Could not submit. Server error.</div>`;
+  }finally{
+    submitBtn.disabled=false;submitBtn.textContent="Submit Assessment";
+  }
+};
+
+
+
+// Certificate
+document.getElementById("certificateBtn").onclick=function(){
+  const courseId=new URLSearchParams(window.location.search).get("courseId");
+  window.location.href=`certificate.html?courseId=${courseId}`;
+};
+
+// Retake Test
+document.getElementById("retakeBtn").onclick=function(){
+  liveScore=0;currentIndex=0;selections=new Array(assessmentData.questions.length).fill(null);
+  resultsDiv.innerHTML='';certDiv.style.display='none';retakeDiv.style.display='none';
+  document.getElementById('quiz').style.display='block';
+  controls.style.display='flex';
+  renderQuestion(0);
+};
+
+// Start
+fetchQuestions();
+</script>
+</body>
+</html>

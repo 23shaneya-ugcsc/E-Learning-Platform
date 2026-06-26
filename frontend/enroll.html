@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enroll Course</title>
+  <style>
+    /* Body & General */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+  
+    /* Header */
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 10px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+  
+    .site-header .logo {
+      height: 50px;
+      width: auto;
+      border-radius: 8px;
+    }
+  
+    .site-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e3c72;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+  
+    /* Container card */
+    .container {
+      max-width: 480px;
+      margin: 60px auto 30px auto;
+      background: #ffffffcc;
+      backdrop-filter: blur(10px);
+      padding: 30px 25px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+  
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+    }
+  
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #1e3c72;
+      font-size: 26px;
+      letter-spacing: 0.5px;
+    }
+  
+    /* Labels & Inputs */
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+      color: #1e3c72;
+      letter-spacing: 0.3px;
+    }
+  
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      transition: border 0.3s ease, box-shadow 0.3s ease;
+    }
+  
+    input:focus, select:focus {
+      border-color: #1e3c72;
+      box-shadow: 0 0 8px rgba(30, 60, 114, 0.3);
+      outline: none;
+    }
+  
+    input[readonly] {
+      background: #f4f4f4;
+      color: #555;
+      cursor: not-allowed;
+    }
+  
+    /* Button */
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(90deg, #1e3c72, #2a5298);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+  
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      background: linear-gradient(90deg, #2a5298, #1e3c72);
+    }
+  
+    /* Message */
+    .message {
+      margin-top: 18px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 16px;
+      min-height: 22px;
+      color: #333;
+    }
+  
+    /* Responsive */
+    @media screen and (max-width: 520px) {
+      .container {
+        margin: 30px 15px;
+        padding: 25px 20px;
+      }
+  
+      h2 {
+        font-size: 22px;
+      }
+    }
+  </style>
+  
+</head>
+<body>
+  <header class="site-header">
+    <img src="D:\logo.png" alt="CODE FEST Logo" class="logo" />
+    <h1>CODE FEST</h1>
+  </header>
+  <div class="container">
+    <h2>Enroll in a Course</h2>
+    <form id="enrollForm">
+      <label for="fullName">Full Name:</label>
+      <input type="text" id="fullName" readonly />
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" readonly />
+
+      <label for="courseSelect">Select Course:</label>
+      <select id="courseSelect" required>
+        <option value="">-- Select a Course --</option>
+      </select>
+
+      <button type="submit">Enroll</button>
+    </form>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:5000";
+
+    function getLoggedInUser() {
+      const user = JSON.parse(localStorage.getItem("user"));
+      return user ? { fullName: user.username, email: user.email, _id: user.id } : null;
+    }
+
+    async function loadCourses() {
+      try {
+        const res = await fetch(`${API_BASE}/api/courses`);
+        const courses = await res.json();
+        const select = document.getElementById("courseSelect");
+
+        courses.forEach(course => {
+          const option = document.createElement("option");
+          option.value = course._id;
+          option.textContent = course.title;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Error loading courses:", err);
+      }
+    }
+
+    window.onload = () => {
+      const user = getLoggedInUser();
+      if (!user) {
+        document.getElementById("message").textContent = "⚠️ Please login first!";
+        document.getElementById("enrollForm").style.display = "none";
+        return;
+      }
+
+      document.getElementById("fullName").value = user.fullName;
+      document.getElementById("email").value = user.email;
+
+      loadCourses();
+    };
+
+    document.getElementById("enrollForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const user = getLoggedInUser();
+  const courseId = document.getElementById("courseSelect").value;
+  const messageBox = document.getElementById("message");
+
+  if (!courseId) {
+    messageBox.textContent = "⚠️ Please select a course.";
+    return;
+  }
+
+  try {
+    // ✅ Check enrollment status first
+    const checkRes = await fetch(`${API_BASE}/api/courses/${courseId}/enrollment-status?userId=${user._id}`);
+    const checkData = await checkRes.json();
+
+    if (checkData.isEnrolled) {
+      messageBox.style.color = "red";
+      messageBox.textContent = "⚠️ You are already enrolled in this course!";
+      return; // Stop here ✅
+    }
+
+    // ✅ If not enrolled → proceed
+    const enrollmentData = {
+      userId: user._id,
+      fullName: user.fullName,
+      email: user.email,
+    };
+
+    const res = await fetch(`${API_BASE}/api/courses/${courseId}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(enrollmentData)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      messageBox.style.color = "green";
+      messageBox.textContent = "✅ Enrolled successfully!";
+      localStorage.setItem("selectedCourseId", courseId);
+
+      setTimeout(() => {
+        window.location.href = `videos.html?course=${courseId}`;
+      }, 1000);
+
+    } else {
+      messageBox.style.color = "red";
+      messageBox.textContent = data.message || "❌ Enrollment failed!";
+    }
+
+  } catch (err) {
+    messageBox.style.color = "red";
+    messageBox.textContent = "❌ Error checking/enrolling!";
+    console.error(err);
+  }
+});
+
+  </script>
+</body>
+</html>

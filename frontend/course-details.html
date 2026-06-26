@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Details - CODE FEST</title>
+  <style>
+    body { font-family:'Segoe UI',sans-serif; margin:0; background:#f9f9f9; color:#333; }
+    header { background:#1e3c72; padding:15px 30px; color:white; }
+    .container { max-width:900px; margin:40px auto; padding:20px; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+    h2 { color:#1e3c72; margin-top:0; }
+    .info { margin:15px 0; }
+    button {
+      padding:10px 20px; background:#1e3c72; color:white;
+      border:none; border-radius:6px; cursor:pointer; font-size:16px;
+    }
+    button:hover { background:#2a5298; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CODE FEST</h1>
+  </header>
+
+  <div class="container">
+    <h2 id="courseTitle">Loading...</h2>
+    <p id="courseDescription"></p>
+    <div class="info"><strong>Duration:</strong> <span id="courseDuration"></span></div>
+    <div class="info"><strong>Instructor:</strong> <span id="courseInstructor"></span></div>
+    <div class="info"><strong>Price:</strong> <span id="coursePrice"></span></div>
+    <div class="info"><strong>Details:</strong> <p id="courseDetails"></p></div>
+    <button onclick="enrollCourse()">Enroll Now</button>
+  </div>
+
+  <script>
+    async function loadCourse() {
+  const params = new URLSearchParams(window.location.search);
+  const courseId = params.get("id");
+  try {
+    const res = await fetch(`http://localhost:5000/api/courses/${courseId}`);
+    const course = await res.json();
+    
+    document.getElementById("courseTitle").innerText = course.title;
+    document.getElementById("courseDescription").innerText = course.description;
+    document.getElementById("courseStudents").innerText = course.studentsEnrolled;
+    
+    // Show PPTs
+    const pptContainer = document.getElementById("pptContainer");
+    pptContainer.innerHTML = "";
+    course.pptFiles.forEach(file => {
+      const link = document.createElement("a");
+      link.href = file.url;
+      link.innerText = file.filename;
+      link.target = "_blank";
+      pptContainer.appendChild(link);
+      pptContainer.appendChild(document.createElement("br"));
+    });
+
+    // Show videos
+    const videoContainer = document.getElementById("videoContainer");
+    videoContainer.innerHTML = "";
+    course.videos.forEach(video => {
+      const iframe = document.createElement("iframe");
+      iframe.src = video.url;
+      iframe.width = "100%";
+      iframe.height = "300";
+      iframe.allowFullscreen = true;
+      videoContainer.appendChild(iframe);
+      const vtitle = document.createElement("p");
+      vtitle.innerText = video.title;
+      videoContainer.appendChild(vtitle);
+    });
+
+  } catch (err) {
+    console.error("Error fetching course:", err);
+  }
+}
+
+    function enrollCourse() {
+      const isLoggedIn = localStorage.getItem("user");
+      if (!isLoggedIn) {
+        alert("Please login to enroll in this course.");
+        location.href = "login.html";
+      } else {
+        alert("Enrolled successfully! 🎉");
+        // you can call backend API for enrollment here
+      }
+    }
+
+    window.onload = loadCourse;
+  </script>
+</body>
+</html>

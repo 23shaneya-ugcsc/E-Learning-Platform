@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registered Students</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    h2 {
+      background: #1e3c72;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin: 0;
+    }
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+    }
+    th {
+      background: #1e3c72;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .remove-btn {
+      background: #e63946;
+      color: white;
+    }
+    .activate-btn {
+      background: #2a9d8f;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>Registered Students</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="studentsTable"></tbody>
+  </table>
+
+  <script>
+    async function fetchStudents() {
+      const res = await fetch("http://localhost:5000/api/students");
+      const students = await res.json();
+      const table = document.getElementById("studentsTable");
+      table.innerHTML = "";
+
+      students.forEach(student => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${student.fullname || "N/A"}</td>
+          <td>${student.email}</td>
+          <td>${student.phone || "N/A"}</td>
+          <td>${student.status}</td>
+          <td>
+            ${student.status === "active" 
+              ? `<button class="remove-btn" onclick="removeStudent('${student._id}')">Remove</button>` 
+              : `<button class="activate-btn" onclick="activateStudent('${student._id}')">Activate</button>`
+            }
+          </td>
+        `;
+        table.appendChild(tr);
+      });
+    }
+
+    async function removeStudent(id) {
+      if (!confirm("Are you sure you want to remove this student?")) return;
+      await fetch(`http://localhost:5000/api/students/${id}`, { method: "DELETE" });
+      fetchStudents();
+    }
+
+    async function activateStudent(id) {
+      await fetch(`http://localhost:5000/api/students/${id}/activate`, { method: "PUT" });
+      fetchStudents();
+    }
+
+    fetchStudents();
+  </script>
+</body>
+</html>

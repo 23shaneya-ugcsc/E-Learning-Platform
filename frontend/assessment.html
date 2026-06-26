@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Staff - Create Assessment</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; background:#f6f8fb; padding:20px; color:#222; }
+    .container { max-width:900px; margin:auto; background:#fff; padding:22px; border-radius:12px; box-shadow:0 8px 30px rgba(20,40,80,0.06); }
+    h2 { text-align:center; color:#1e3c72; margin-top:0; }
+    .row { display:flex; gap:12px; margin-bottom:12px; }
+    .col { flex:1; }
+    input[type="text"], input[type="number"], textarea { width:100%; padding:10px; border:1px solid #e6e9ef; border-radius:8px; font-size:14px; }
+    label { font-size:13px; color:#444; display:block; margin-bottom:6px; }
+    .question-box { border:1px solid #eef2f6; padding:14px; border-radius:10px; margin-bottom:12px; background:#fbfdff; }
+    .controls { display:flex; gap:8px; margin-top:12px; }
+    button { padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:700; }
+    .btn-primary { background:#1e3c72; color:#fff; }
+    .btn-danger { background:#e53935; color:#fff; }
+    .muted { color:#6b7280; font-size:13px; }
+    .small { font-size:12px; color:#666; }
+    .site-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.site-header .logo {
+  height: 50px;
+  width: auto;
+}
+
+.site-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1e3c72;
+  letter-spacing: 1px;
+}
+
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <img src="D:\logo.png" alt="CODE FEST Logo" class="logo" />
+    <h1>CODE FEST</h1>
+  </header>
+  <div class="container">
+    <h2>Create Assessment</h2>
+
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
+      <div style="flex:1;">
+        <label>Assessment Title</label>
+        <input id="assessTitle" type="text" placeholder="e.g., Module 1 Quiz — Introduction" />
+      </div>
+      <div style="width:160px;">
+        <label>Course</label>
+        <input id="courseIdInput" type="text" readonly />
+      </div>
+    </div>
+
+    <div id="questions"></div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="btn-primary" onclick="addQuestion()">➕ Add Question</button>
+      <button onclick="removeLastQuestion()" class="btn-danger">− Remove Last</button>
+      <div style="flex:1" class="small muted">Add questions with 4 options and an index (0-3) for correct answer.</div>
+    </div>
+
+    <div style="margin-top:16px; display:flex; gap:8px;">
+      <button class="btn-primary" onclick="saveAssessment()">💾 Save Assessment</button>
+      <button onclick="window.history.back()" style="background:#f3f4f6; border-radius:10px; padding:10px 14px;">Cancel</button>
+    </div>
+  </div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+const urlParams = new URLSearchParams(window.location.search);
+const courseId = urlParams.get("courseId") || "";
+document.getElementById("courseIdInput").value = courseId || "Select from dashboard";
+
+let questions = [];
+
+function addQuestion() {
+  const idx = questions.length;
+  const wrapper = document.createElement("div");
+  wrapper.className = "question-box";
+  wrapper.id = `qbox${idx}`;
+  wrapper.innerHTML = `
+    <label>Q${idx+1} — Question</label>
+    <input type="text" id="q${idx}" placeholder="Enter question text" />
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+      <div>
+        <label>Option 1</label>
+        <input type="text" id="q${idx}opt0" placeholder="Option 1" />
+      </div>
+      <div>
+        <label>Option 2</label>
+        <input type="text" id="q${idx}opt1" placeholder="Option 2" />
+      </div>
+      <div>
+        <label>Option 3</label>
+        <input type="text" id="q${idx}opt2" placeholder="Option 3" />
+      </div>
+      <div>
+        <label>Option 4</label>
+        <input type="text" id="q${idx}opt3" placeholder="Option 4" />
+      </div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <label>Correct answer index (0-3)</label>
+      <input type="number" id="q${idx}ans" min="0" max="3" />
+    </div>
+  `;
+  document.getElementById("questions").appendChild(wrapper);
+  questions.push(idx);
+  // auto-scroll
+  wrapper.scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+function removeLastQuestion() {
+  if (questions.length === 0) return;
+  const last = questions.pop();
+  const el = document.getElementById(`qbox${last}`);
+  if (el) el.remove();
+}
+
+// assessment.js - <script> tag-க்குள் உள்ள loadExistingAssessment function-ஐ முழுவதுமாக மாற்றவும்
+
+  let existingAssessmentId = null; // ஏற்கனவே உள்ள Assessment-ன் ID-ஐ சேமிக்க
+
+async function loadExistingAssessment() {
+    if (!courseId) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/assessments/student/${courseId}`);
+        const data = await res.json();
+        
+        if (data.success && data.questions && data.questions.length > 0) {
+            
+            existingAssessmentId = data._id; 
+            document.getElementById("assessTitle").value = data.title;
+            
+            // 🛑 1. தற்போதைய கேள்விகளை நீக்க (மிக முக்கியம்)
+            questions = [];
+            document.getElementById("questions").innerHTML = "";
+
+            // ✅ 2. திரும்பப் பெற்ற கேள்விகளைக் கொண்டு Form-ஐ நிரப்ப (Populating logic)
+            data.questions.forEach((q, qIndex) => {
+                const idx = qIndex;
+                const wrapper = document.createElement("div");
+                wrapper.className = "question-box";
+                wrapper.id = `qbox${idx}`;
+                
+                // HTML-ல் value-ஐ நிரப்பப்பட்டுள்ளது
+                wrapper.innerHTML = `
+                    <label>Q${idx+1} — Question</label>
+                    <input type="text" id="q${idx}" placeholder="Enter question text" value="${q.question}" />
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+                        <div>
+                            <label>Option 1</label>
+                            <input type="text" id="q${idx}opt0" placeholder="Option 1" value="${q.options[0] || ''}" />
+                        </div>
+                        <div>
+                            <label>Option 2</label>
+                            <input type="text" id="q${idx}opt1" placeholder="Option 2" value="${q.options[1] || ''}" />
+                        </div>
+                        <div>
+                            <label>Option 3</label>
+                            <input type="text" id="q${idx}opt2" placeholder="Option 3" value="${q.options[2] || ''}" />
+                        </div>
+                        <div>
+                            <label>Option 4</label>
+                            <input type="text" id="q${idx}opt3" placeholder="Option 4" value="${q.options[3] || ''}" />
+                        </div>
+                    </div>
+
+                    <div style="margin-top:8px;">
+                        <label>Correct answer index (0-3)</label>
+                        <input type="number" id="q${idx}ans" min="0" max="3" value="${q.answer}" />
+                    </div>
+                `;
+                document.getElementById("questions").appendChild(wrapper);
+                questions.push(idx); // questions array-ஐ update செய்கிறது
+            });
+            
+            alert("Existing Assessment loaded for editing.");
+        }
+    } catch (error) {
+        console.error("Error loading existing assessment:", error);
+    }
+}
+// assessment.js: saveAssessment function-ஐ மாற்றவும்
+
+async function saveAssessment() {
+    const title = document.getElementById("assessTitle").value.trim();
+    const courseId = document.getElementById("courseIdInput").value.trim();
+    // 🛑 குறிப்பு: staffId-ஐ நீங்கள் எங்கிருந்தோ பெற வேண்டும் (உதாரணமாக localStorage அல்லது ஒரு Global Variable-ல் இருந்து)
+    // இந்தக் குறியீட்டில் இல்லாததால், நான் அதை 'STAF001' என்று அனுமானிக்கிறேன்.
+    const staffId = "STAF001"; // இதை உங்கள் அசல் staffId-ஐ கொண்டு மாற்றவும்.
+
+    if (!title) { alert("Assessment title is required."); return; }
+    if (!courseId || courseId === "Select from dashboard") { 
+        alert("Course ID is missing. Please select a course from the dashboard."); 
+        return; 
+    }
+    if (questions.length === 0) { alert("Please add at least one question."); return; }
+    
+    // ✅ இங்கே தான் கேள்விகள் பிரித்தெடுக்கப்படுகின்றன (Extraction Logic)
+    const prepared = [];
+    let isValid = true;
+
+    for (let i = 0; i < questions.length; i++) {
+        const qIndex = questions[i]; // i-வது கேள்வியின் சரியான index
+        const qText = document.getElementById(`q${qIndex}`).value.trim();
+        const options = [];
+        let missingOption = false;
+        
+        for (let j = 0; j < 4; j++) {
+            const opt = document.getElementById(`q${qIndex}opt${j}`).value.trim();
+            if (!opt) missingOption = true;
+            options.push(opt);
+        }
+
+        const answer = document.getElementById(`q${qIndex}ans`).value;
+        const answerIndex = parseInt(answer, 10);
+
+        if (!qText || missingOption || answer === "" || isNaN(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+            alert(`Error in Question ${qIndex + 1}: Please fill out the question, all 4 options, and a valid correct answer index (0-3).`);
+            isValid = false;
+            break;
+        }
+
+        prepared.push({
+            question: qText,
+            options: options,
+            answer: answerIndex // Number ஆக சேமிக்கப்படுகிறது
+        });
+    }
+
+    if (!isValid) return;
+
+    // API Call-ஐ தீர்மானிக்கவும்
+    let apiUrl = `${API_BASE}/assessments`;
+    let method = "POST";
+    
+    // existingAssessmentId இருக்கிறதா என்று பார்க்கவும் (PUT or POST)
+    if (existingAssessmentId) {
+        method = "PUT";
+        apiUrl = `${API_BASE}/assessments/${existingAssessmentId}`;
+    }
+
+    try {
+        // ... API fetch call ...
+        const res = await fetch(apiUrl, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ courseId, staffId, title, questions: prepared })
+        });
+        
+        const data = await res.json();
+        if (res.ok && data.success) {
+            const action = (method === "POST" ? "saved" : "updated"); 
+            alert(`✅ Assessment successfully ${action}.`);
+            window.location.href = "staff-dashboard.html";
+        } else {
+            alert("❌ Failed to save/update assessment: " + (data.message || data.error || JSON.stringify(data)));
+            console.error("saveAssessment response:", data);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("❌ Could not connect to server to save/update assessment.");
+    }
+}
+// staff-dashboard.html (உதாரண JavaScript)
+async function loadStaffAssessments(staffId) {
+    try {
+        const res = await fetch(`${API_BASE}/assessments/staff/${staffId}`);
+        const data = await res.json();
+        if (data.success) {
+            // ✅ Assessments கிடைத்துவிட்டது. இதை HTML-ல் காண்பிக்க வேண்டும்.
+            console.log("Staff's Assessments:", data.assessments);
+            // ... Display logic goes here ...
+        } else {
+            console.error("Failed to load assessments:", data.message);
+        }
+    } catch (err) {
+        console.error("Fetch error:", err);
+    }
+}
+// Login-க்குப் பிறகு இந்த function-ஐ அழைக்கவும்: loadStaffAssessments(staffId);
+
+// initialize with one question for convenience
+
+loadExistingAssessment(); 
+
+// Load ஆகாவிட்டால், ஒரு கேள்வியை மட்டும் சேர்க்கவும்
+setTimeout(() => {
+    
+    if (!existingAssessmentId && questions.length === 0) {
+        addQuestion();
+    }
+}, 1000);
+//addQuestion();
+loadStaffAssessments();
+</script>
+</body>
+</html>

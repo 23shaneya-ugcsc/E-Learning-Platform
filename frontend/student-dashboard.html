@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dashboard - CODE FEST</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f8f9fa; }
+    header {
+      background: #1e3c72; color: #fff; padding: 15px 30px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .site-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.site-header .logo {
+  height: 50px;
+  width: auto;
+}
+
+.site-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1e3c72;
+  letter-spacing: 1px;
+}
+
+    header h1 { margin: 0; font-size: 20px; }
+    .logout-btn {
+      background: #d9534f; color: #fff; padding: 8px 15px;
+      border: none; border-radius: 6px; cursor: pointer;
+    }
+    .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+    h2 { color: #2a5298; margin-bottom: 15px; }
+    .course-list { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .course-card {
+      background: #fff; padding: 20px; border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .course-card h3 { margin: 0 0 10px; color: #1e3c72; }
+    .course-card p { margin: 5px 0; }
+    .btn {
+      display: inline-block; padding: 8px 12px; margin-top: 8px;
+      border: none; border-radius: 6px; cursor: pointer; font-size: 14px;
+      background: #007bff; color: #fff;
+    }
+    .btn.secondary { background: #ffc107; color: #000; margin-left: 8px; }
+    .btn.green { background: #28a745; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Student Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <div class="container">
+    <h2>📌 Pending Courses</h2>
+    <div id="pendingCourses" class="course-list"></div>
+
+    <h2>✅ Completed Courses</h2>
+    <div id="completedCourses" class="course-list"></div>
+  </div>
+
+<script>
+  async function getUserIdentifier() {
+    const userId = localStorage.getItem("userId");
+    if (userId) return userId;
+
+    const user = JSON.parse(localStorage.getItem("currentUser") || "null");
+    if (!user) return null;
+
+    // prefer email, fall back to username
+    return user.email || user.username || null;
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const identifier = await getUserIdentifier();
+    if (!identifier) {
+      alert("Please login again!");
+      window.location.href = "login.html";
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/enrollments/${encodeURIComponent(identifier)}`);
+      if (!res.ok) throw new Error("Server returned " + res.status);
+      const enrollments = await res.json();
+
+      const pendingDiv = document.getElementById("pendingCourses");
+      const completedDiv = document.getElementById("completedCourses");
+
+      if (!enrollments || enrollments.length === 0) {
+        pendingDiv.innerHTML = "<p>No enrollments found.</p>";
+        return;
+      }
+
+      enrollments.forEach((enroll) => {
+        const course = enroll.courseId || {};
+        const progressData = JSON.parse(localStorage.getItem(`progress_${course._id}`) || "null") || { watched: 0, total: (course.videos ? course.videos.length : 5), assessment: false };
+        const watched = progressData.watched || 0;
+        const total = progressData.total || (course.videos ? course.videos.length : 5);
+        const assessmentDone = !!progressData.assessment;
+
+        const div = document.createElement("div");
+        div.className = "course-card";
+        div.innerHTML = `
+          <h3>${course.title || "Untitled Course"}</h3>
+          <p>${course.description || ""}</p>
+          <p>Progress: ${watched} / ${total} videos</p>
+          <p>${assessmentDone ? "✔ Assessment completed" : "⚠ Assessment pending"}</p>
+        `;
+
+        const resumeBtn = document.createElement("button");
+        resumeBtn.className = "btn";
+        resumeBtn.textContent = "Resume Course";
+        resumeBtn.onclick = () => {
+          localStorage.setItem("resumeCourse", course._id);
+          window.location.href = `videos.html?courseId=${course._id}`;
+        };
+        div.appendChild(resumeBtn);
+
+        const assessBtn = document.createElement("button");
+        assessBtn.className = "btn secondary";
+        assessBtn.textContent = "Take Assessment";
+        assessBtn.disabled = assessmentDone;
+        assessBtn.onclick = () => {
+          // redirect to assessment page (implement that page)
+          window.location.href = `assessment.html?courseId=${course._id}`;
+        };
+        div.appendChild(assessBtn);
+
+        const certBtn = document.createElement("button");
+        certBtn.className = "btn green";
+        certBtn.textContent = "Download Certificate";
+        certBtn.disabled = (watched < total) || !assessmentDone;
+        certBtn.onclick = () => {
+          // implement certificate generation / download
+          alert("🎉 Downloading certificate for " + course.title);
+        };
+        div.appendChild(certBtn);
+
+        if (watched < total || !assessmentDone) {
+          pendingDiv.appendChild(div);
+        } else {
+          completedDiv.appendChild(div);
+        }
+      });
+    } catch (err) {
+      console.error("Error fetching enrollments:", err);
+      alert("Could not load your courses. Please try again later.");
+    }
+  });
+
+  function logout() {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("currentUser");
+    window.location.href = "login.html";
+  }
+</script>
+</body>
+</html>

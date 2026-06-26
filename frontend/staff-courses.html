@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff Courses</title>
+  <link rel="stylesheet" href="staff-dashboard.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Staff Panel</h2>
+    <ul>
+      <li><a href="staff-dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="staff-courses.html" class="active">📚 Courses</a></li>
+      <li><a href="staff-students.html">👨‍🎓 Students</a></li>
+      <li><a href="staff-assessments.html">📝 Assessments</a></li>
+      <li><a href="staff-messages.html">💬 Messages</a></li>
+      <li><a href="login.html">🚪 Logout</a></li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <header>
+      <h1>Manage Courses</h1>
+    </header>
+
+    <section>
+      <button class="btn">➕ Add New Course</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Course Title</th>
+            <th>Students Enrolled</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Python Basics</td>
+            <td>45</td>
+            <td><button>Edit</button> <button>Delete</button></td>
+          </tr>
+          <tr>
+            <td>Web Development</td>
+            <td>75</td>
+            <td><button>Edit</button> <button>Delete</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

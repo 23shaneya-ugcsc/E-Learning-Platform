@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff Assessments</title>
+  <link rel="stylesheet" href="staff-dashboard.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Staff Panel</h2>
+    <ul>
+      <li><a href="staff-dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="staff-courses.html">📚 Courses</a></li>
+      <li><a href="staff-students.html">👨‍🎓 Students</a></li>
+      <li><a href="staff-assessments.html" class="active">📝 Assessments</a></li>
+      <li><a href="staff-messages.html">💬 Messages</a></li>
+      <li><a href="login.html">🚪 Logout</a></li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <header>
+      <h1>Manage Assessments</h1>
+    </header>
+
+    <section>
+      <button class="btn">➕ Create New Quiz</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Assessment</th>
+            <th>Course</th>
+            <th>Attempts</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Python Basics Quiz 1</td>
+            <td>Python Basics</td>
+            <td>38</td>
+            <td><button>Edit</button> <button>Delete</button></td>
+          </tr>
+          <tr>
+            <td>Web Dev Final Exam</td>
+            <td>Web Development</td>
+            <td>50</td>
+            <td><button>Edit</button> <button>Delete</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

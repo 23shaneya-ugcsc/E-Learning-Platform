@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CODE FEST - Login</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #1e3c72, #2a5298);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+  }
+  .wrapper {
+    display: flex;
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    overflow: hidden;
+    width: 850px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .left-panel {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 30px;
+  }
+  .left-panel h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    color: orange;
+  }
+  .left-panel p {
+    font-size: 16px;
+    opacity: 0.9;
+  }
+  .container {
+    flex: 1;
+    padding: 40px;
+    text-align: center;
+  }
+  h2 { margin-bottom: 20px; }
+  input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 6px;
+    outline: none;
+  }
+  button {
+    background: orange;
+    color: black;
+    font-weight: bold;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+  }
+  button:hover { background: #ffb84d; }
+  #msg { margin-top: 10px; font-weight: bold; color: yellow; }
+  .tabs { display: flex; justify-content: center; margin-bottom: 15px; }
+  .tabs button {
+    flex: 1;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .tabs button.active {
+    background: orange;
+    color: black;
+  }
+  .form-container { display: none; }
+  .form-container.active { display: block; }
+  .links { margin-top: 15px; font-size: 14px; }
+  .links a { color: #ffd966; cursor: pointer; text-decoration: none; }
+  .links a:hover { text-decoration: underline; }
+  .site-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.site-header .logo {
+  height: 50px;
+  width: auto;
+}
+
+.site-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1e3c72;
+  letter-spacing: 1px;
+}
+
+</style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="left-panel">
+      <h1>CODE FEST</h1>
+      <p>Learn • Compete • Grow</p>
+      <p style="margin-top:20px; font-size:14px;">Access your dashboard to explore courses, manage events, and more.</p>
+    </div>
+
+    <div class="container">
+      <h2>Welcome Back</h2>
+
+      <div class="tabs">
+        <button id="loginTab" class="active">Login</button>
+        <button id="registerTab">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginFormContainer" class="form-container active">
+        <form id="loginForm">
+          <input type="text" id="username" placeholder="Username" required>
+          <input type="password" id="password" placeholder="Password" required>
+          <button type="submit">Login</button>
+        </form>
+        <div class="links">
+          <a href="#" onclick="forgotPassword()">Forgot Password?</a> | 
+          <a href="index.html">Back to Dashboard</a>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerFormContainer" class="form-container">
+        <form id="registerForm">
+          <input type="text" id="regUsername" placeholder="Choose Username" required>
+          <input type="password" id="regPassword" placeholder="Choose Password" required>
+          <button type="submit">Register</button>
+        </form>
+      </div>
+
+      <div id="msg"></div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    const loginTab = document.getElementById("loginTab");
+    const registerTab = document.getElementById("registerTab");
+    const loginFormContainer = document.getElementById("loginFormContainer");
+    const registerFormContainer = document.getElementById("registerFormContainer");
+
+    loginTab.addEventListener("click", () => {
+      loginTab.classList.add("active");
+      registerTab.classList.remove("active");
+      loginFormContainer.classList.add("active");
+      registerFormContainer.classList.remove("active");
+    });
+
+    registerTab.addEventListener("click", () => {
+  window.location.href = "register.html"; 
+});
+
+
+    // Forgot Password (dummy for now)
+    function forgotPassword() {
+  window.location.href = "reset-password.html";
+}
+
+
+    // Login JS (from your existing code, unchanged)
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+  
+      try {
+        const res = await fetch("http://localhost:5000/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+  
+        const data = await res.json();
+  
+        if (res.ok) {
+          localStorage.setItem("userId", data.user.id);
+          localStorage.setItem("username", data.user.username);
+          localStorage.setItem("role", data.role);
+          localStorage.setItem("studentId", data.user.id);
+
+
+          if (data.role === "admin") {
+            localStorage.setItem("user", JSON.stringify(data.user));
+            window.location.href = "admin-dashboard.html";
+          } else if (data.role === "staff") {
+            localStorage.setItem("user", JSON.stringify(data.user));
+            window.location.href = "staff-dashboard.html";
+          } else if (data.role === "student") {
+            localStorage.setItem("user", JSON.stringify(data.user));
+            window.location.href = "after-login.html";
+          } else {
+            alert("Unauthorized user");
+          }
+        } else {
+          alert(data.message || "Invalid login");
+        }
+      } catch (err) {
+        alert("Server error. Try again later.");
+      }
+    });
+  </script>
+</body>
+</html>

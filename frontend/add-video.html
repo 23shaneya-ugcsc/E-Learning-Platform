@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Videos - CODE FEST</title>
+<style>
+:root{
+  --primary:#1e3c72;
+  --accent:#2a5298;
+  --bg:#eef2f7;
+  --card:#ffffff;
+  --muted:#666;
+  --success:#28a745;
+  --danger:#e53935;
+}
+body { margin:0; font-family:Inter, Arial; background:var(--bg); }
+header { background: linear-gradient(90deg,var(--primary), var(--accent)); color:#fff; padding:18px 28px; display:flex; justify-content:space-between; align-items:center; }
+header h1 { margin:0; font-size:20px; }
+.logout { cursor:pointer; background:#e53935; color:white; padding:8px 14px; border-radius:8px; text-decoration:none; font-weight:600; }
+.container { max-width:1000px; margin:auto; padding:20px; }
+.card { background:var(--card); padding:20px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.06); margin-bottom:20px; }
+.card h2 { margin-top:0; color:var(--primary); }
+form { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+input[type="text"], input[type="file"] { padding:8px; border-radius:8px; border:1px solid #ccc; font-size:14px; flex:1; }
+button { padding:8px 14px; border:none; border-radius:8px; background:var(--primary); color:white; font-weight:600; cursor:pointer; }
+button:hover { opacity:0.9; }
+.video-item { background:#f9fafc; padding:12px; border-radius:12px; margin-bottom:10px; display:flex; gap:10px; align-items:center; justify-content:space-between; }
+.video-item video { max-width:200px; max-height:120px; border-radius:8px; }
+.video-item button { background:var(--danger); }
+.search-input { padding:8px; border-radius:8px; border:1px solid #ccc; margin-bottom:12px; width:100%; font-size:14px; }
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.site-header .logo {
+  height: 50px;
+  width: auto;
+}
+
+.site-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1e3c72;
+  letter-spacing: 1px;
+}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>Add Videos</h1>
+  <a class="logout" onclick="logout()">Logout</a>
+</header>
+<header class="site-header">
+  <img src="D:\logo.png" alt="CODE FEST Logo" class="logo" />
+  <h1>CODE FEST</h1>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>Course: <span id="courseTitle"></span></h2>
+    <form id="videoForm">
+      <input type="text" id="videoTitle" placeholder="Enter video title" required>
+      <input type="file" id="videoFile" accept="video/*" required>
+      <button type="submit">Upload Video</button>
+    </form>
+  </div>
+
+  <input type="text" id="searchInput" class="search-input" placeholder="Search videos by title...">
+
+  <div id="videoList"></div>
+</div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+const courseId = new URLSearchParams(window.location.search).get("courseId");
+document.getElementById("courseTitle").textContent = courseId || "Unknown";
+
+function logout(){ localStorage.removeItem("user"); localStorage.removeItem("role"); window.location.href="login.html"; }
+
+async function loadVideos() {
+  try {
+    const res = await fetch(`${API_BASE}/courses/${courseId}`);
+    const course = await res.json();
+    const list = course.videos || [];
+    const container = document.getElementById("videoList");
+    const search = document.getElementById("searchInput").value.toLowerCase();
+
+    container.innerHTML = list.filter(v => v.title.toLowerCase().includes(search)).map(v=>`
+      <div class="video-item">
+        <video src="${v.url}" controls></video>
+        <div style="flex:1; margin-left:10px;">${v.title}</div>
+        <button onclick="removeVideo('${v._id}')">Remove</button>
+      </div>
+    `).join("") || '<p style="color:#666;">No videos uploaded yet.</p>';
+  } catch(err){ console.error(err); }
+}
+
+document.getElementById("videoForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const file = document.getElementById("videoFile").files[0];
+  const title = document.getElementById("videoTitle").value.trim();
+  if(!file||!title)return alert("Please provide title and video file.");
+
+  const formData = new FormData();
+  formData.append("video", file);
+  formData.append("title", title);
+
+  try {
+    const res = await fetch(`${API_BASE}/courses/${courseId}/add-video-file`, { method:"POST", body:formData });
+    if(res.ok){
+      alert("✅ Video uploaded!");
+      document.getElementById("videoForm").reset();
+      loadVideos();
+    } else alert("❌ Upload failed.");
+  } catch(err){ console.error(err); alert("Upload failed."); }
+});
+
+async function removeVideo(videoId){
+  if(!confirm("Remove this video?")) return;
+  try {
+    const res = await fetch(`${API_BASE}/courses/${courseId}/remove-video/${videoId}`, { method:"DELETE" });
+    if(res.ok){ alert("✅ Video removed"); loadVideos(); }
+  } catch(err){ console.error(err); }
+}
+
+document.getElementById("searchInput").addEventListener("input", loadVideos);
+loadVideos();
+</script>
+</body>
+</html>

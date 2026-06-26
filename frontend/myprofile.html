@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Profile - CODE FEST</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* ===================================== */
+/* GLOBAL STYLES */
+/* ===================================== */
+:root {
+  --primary-color: #1e3c72;
+  --primary-accent: #2a5298;
+  --text-dark: #1f2937;
+  --bg-light: #f3f6fb;
+  --shadow-main: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-accent));
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Animation */
+@keyframes fadeInSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================================== */
+/* PROFILE CONTAINER */
+/* ===================================== */
+.profile-container {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 45px;
+  box-shadow: var(--shadow-main);
+  animation: fadeInSlideUp 0.6s ease-out forwards;
+  transition: 0.3s ease;
+}
+
+.profile-container:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(30, 60, 114, 0.25);
+}
+
+/* Heading */
+h2 {
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 30px;
+  font-weight: 700;
+  font-size: 1.8em;
+}
+
+/* ===================================== */
+/* FORM */
+/* ===================================== */
+.form-group { margin-bottom: 22px; }
+
+label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #cfd8e3;
+  border-radius: 8px;
+  font-size: 1em;
+  background-color: #f9fbff;
+  transition: 0.3s ease;
+}
+
+input:focus {
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.25);
+  outline: none;
+  background-color: #fff;
+}
+
+/* Button */
+button {
+  width: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-accent));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-weight: 700;
+  font-size: 1em;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s ease;
+}
+
+button:hover {
+  background: linear-gradient(90deg, #233d8c, #2d5ab2);
+  transform: translateY(-2px);
+}
+
+h3 {
+  color: var(--primary-color);
+  margin-top: 25px;
+  margin-bottom: 10px;
+}
+
+/* ===================================== */
+/* COURSE LINK STYLES */
+/* ===================================== */
+
+.course-link {
+    /* கிளிக் செய்ய முடியும் என்பதை அறிவிக்க */
+    cursor: pointer;
+    /* மவுஸ் அதன் மீது வரும்போது சிறிய அசைவுக்காக */
+    transition: color 0.2s ease;
+}
+
+.course-link:hover {
+    /* ஹோவர் செய்யும் போது நிறத்தை மாற்றவும் */
+    color: var(--primary-accent); /* நீல நிறம் அல்லது உங்களுக்கு விருப்பமான நிறம் */
+    text-decoration: underline;
+}
+
+/* ===================================== */
+/* COURSE TITLE UI IMPROVEMENT */
+/* ===================================== */
+
+.course-link,
+.certificate-link {
+    display: block;
+    background: #f4f7ff;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    font-weight: 500;
+    color: #1e3c72;
+    border: 1px solid #d6dfff;
+    cursor: pointer;
+    transition: 0.25s ease;
+    box-shadow: 0 3px 8px rgba(30, 60, 114, 0.1);
+}
+
+/* Hover effect */
+.course-link:hover,
+.certificate-link:hover {
+    background: #e8efff;
+    border-color: #2a5298;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(30, 60, 114, 0.25);
+}
+
+/* Icon before course title */
+.course-link::before {
+    content: "📘  ";
+    font-size: 1.1em;
+}
+
+.certificate-link::before {
+    content: "🏅  ";
+    font-size: 1.1em;
+}
+
+/* Remove bullet dots from ul */
+#enrolledList li,
+#completedList li {
+    list-style: none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="profile-container">
+  
+  <h2>Edit My Profile</h2>
+
+  <form id="profileForm">
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" id="name" required>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" required>
+    </div>
+
+    <div class="form-group">
+      <label for="phone">Phone</label>
+      <input type="text" id="phone">
+    </div>
+
+    <button type="submit">Update Profile</button>
+  </form>
+
+  <hr style="margin: 30px 0; border-top: 1px solid black;">
+
+  <h3>Enrolled Courses</h3>
+  <ul id="enrolledList" style="padding-left:20px; color:#333;"></ul>
+
+  <h3>Completed Courses</h3>
+  <ul id="completedList" style="padding-left:20px; color:#333;"></ul>
+
+</div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const studentId = urlParams.get('id') || localStorage.getItem("studentId");
+
+if (!studentId) {
+    alert("Login information not found. Please log in.");
+    window.location.href = "login.html";
+}
+
+async function loadProfile() {
+  try {
+    const res = await fetch(`http://localhost:5000/api/students/${studentId}`);
+    const student = await res.json();
+
+    // Fill form data
+    document.getElementById("name").value = student.fullname || student.name || "";
+    document.getElementById("email").value = student.email || "";
+    document.getElementById("phone").value = student.phone || "";
+
+    // Display Enrolled & Completed Courses
+    // ... loadProfile function-க்குள் உள்ள பகுதி ...
+
+    // Display Enrolled & Completed Courses
+    const enrolledList = document.getElementById("enrolledList");
+    const completedList = document.getElementById("completedList"); // Completed List Element-ஐ மீண்டும் பெறவும்
+
+    enrolledList.innerHTML = "";
+    completedList.innerHTML = "";
+
+    // 1. Enrolled Courses-ஐ மட்டும் Display செய்வது
+    if (student.enrolledCourses?.length > 0) {
+    student.enrolledCourses.forEach(c => {
+        const li = document.createElement("li");
+        const courseId = c.id || c._id || c.courseId; 
+        
+        li.setAttribute('data-course-id', courseId); 
+        li.textContent = c.courseTitle || c.title || c.name || "Title Missing";
+        li.classList.add('course-link');
+        
+        enrolledList.appendChild(li);
+    });
+}
+
+    // 2. Completed Courses-ஐ மட்டும் Display செய்வது (முழுவதுமாக நீக்கப்பட்டு விட்டது போல் உள்ளது)
+    if (student.completedCourses?.length > 0) {
+    student.completedCourses.forEach(c => {
+        const li = document.createElement("li");
+        const courseId = c.id || c._id || c.courseId; 
+        
+        li.setAttribute('data-course-id', courseId); 
+        li.textContent = c.courseName || c.title || "Course Name Not Found";
+        li.classList.add('certificate-link');
+        
+        completedList.appendChild(li);
+    });
+}
+
+// ======================================
+// ENROLLED COURSE CLICK EVENT (videos.html)
+// ======================================
+document.querySelectorAll('.course-link').forEach(item => {
+    item.addEventListener('click', function() {
+        const courseId = this.getAttribute('data-course-id');
+        const courseName = this.textContent; // Course Name-ஐப் பெற
+        
+        if (courseId) {
+            // videos.html-க்குச் செல்லுதல்
+            
+            localStorage.setItem('selectedCourseName', courseName);  // ⭐ FIXED
+            
+            window.location.href = `videos.html?course=${courseId}`; 
+        } else {
+            alert("Course ID not found.");
+        }
+    });
+});
+
+// ======================================
+// COMPLETED COURSE CLICK EVENT (certificate.html)
+// ======================================
+document.querySelectorAll('.certificate-link').forEach(item => {
+    item.addEventListener('click', async function() {
+        const courseId = this.getAttribute('data-course-id');
+        const clickedCourseName = this.textContent; 
+        
+        if (courseId && studentId) {
+            // 🛑 இங்கேதான் Score மற்றும் Total-ஐப் பெற வேண்டும் (உங்கள் Backend API-ஐப் பயன்படுத்தவும்)
+            try {
+                // உதாரண API Call:
+                const scoreRes = await fetch(`http://localhost:5000/api/scores/${studentId}/${courseId}`);
+                const scoreData = await scoreRes.json();
+                
+                // பெற்ற Data-வை localStorage-ல் செட் செய்யுங்கள்:
+                localStorage.setItem('selectedCourseName', clickedCourseName);
+                localStorage.setItem('quizScore', scoreData.score || 0); // உங்கள் API-ல் இருந்து வரும் key
+                localStorage.setItem('quizTotal', scoreData.total || 100); // உங்கள் API-ல் இருந்து வரும் key
+
+                // இப்போது certificate.html-க்குச் செல்லலாம்
+                window.location.href = `certificate.html?courseId=${courseId}`;
+            } catch (error) {
+                console.error("Failed to fetch score data:", error);
+                alert("Could not load score data for certificate.");
+            }
+        } else {
+            alert("Certificate cannot be generated. Details missing.");
+        }
+    });
+});
+// ======================================
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+document.getElementById("profileForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const updated = {
+    fullname: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value
+  };
+
+  const res = await fetch(`http://localhost:5000/api/user/${studentId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updated)
+  });
+
+  const result = await res.json();
+
+  if (res.ok) {
+    alert("Profile updated successfully!");
+    window.location.href = `videos.html?course=${localStorage.getItem('currentCourseId') || ''}`;
+  } else {
+    alert("Update failed: " + (result.message || ""));
+  }
+});
+
+document.addEventListener("DOMContentLoaded", loadProfile);
+</script>
+
+</body>
+</html>

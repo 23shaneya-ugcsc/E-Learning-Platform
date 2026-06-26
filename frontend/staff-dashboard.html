@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Staff Dashboard - CODE FEST</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --primary:#1e3c72;
+  --accent:#2a5298;
+  --bg:#eef2f7;
+  --card:#ffffff;
+  --muted:#666;
+  --success:#28a745;
+}
+*{box-sizing:border-box}
+body { font-family: Inter, Arial, sans-serif; background:var(--bg); margin:0; color:#222; }
+header { background: linear-gradient(90deg,var(--primary), var(--accent)); color:white; padding:18px 28px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+header h1 { margin:0; font-size:20px; letter-spacing:0.2px; }
+.logout { cursor:pointer; background:#e53935; color:white; padding:8px 14px; border-radius:8px; text-decoration:none; font-weight:600; }
+.container { padding:26px; max-width:1200px; margin:auto; }
+
+.top-grid { display:grid; grid-template-columns: 1fr 380px; gap:20px; margin-bottom:20px; align-items:start; }
+.panel { background:var(--card); padding:18px; border-radius:12px; box-shadow:0 6px 18px rgba(24,39,77,0.06); }
+.stats-row { display:flex; gap:12px; }
+.stat { flex:1; padding:16px; border-radius:10px; background: linear-gradient(180deg,#fff,#fbfdff); box-shadow:0 3px 8px rgba(22,33,60,0.03); text-align:center; }
+.stat h3 { margin:0; font-size:13px; color:var(--muted); font-weight:600; }
+.stat p { margin:8px 0 0; font-size:22px; color:var(--primary); font-weight:800; }
+
+#chartWrap { height:320px; display:flex; align-items:center; justify-content:center; }
+canvas { max-width:100%; height:100% !important; }
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.course-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border: 1px solid #e3e8ef;
+  transition: all 0.25s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+.course-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.course-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.course-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.course-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0 6px;
+}
+
+.btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+.btn:hover { opacity: 0.9; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-ghost { background: transparent; color: var(--primary); border: 1px solid #d0d5dd; }
+.btn-danger { background: #e53935; color: white; }
+
+.course-details {
+  margin-top: auto;
+  background: #f9fafc;
+  border-radius: 12px;
+  padding: 10px;
+  border: 1px solid #e0e6ef;
+  flex-grow: 1;
+  display: none;
+  overflow-y: auto;
+  max-height: 180px;
+}
+
+.course-details.show { display: block; }
+
+.enroll-list {
+  margin-top: 10px;
+}
+
+.enroll-list table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.enroll-list th, .enroll-list td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.enroll-list th {
+  background: #f0f4f8;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.enroll-list tr:hover td {
+  background: #f9fbfd;
+}
+
+.empty { color:var(--muted); font-style:italic; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 14px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.modal.show { display: flex; }
+
+.modal-content h2 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+.modal-content label {
+  display: block;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  gap: 10px;
+}
+
+@media (max-width:900px){
+  .top-grid { grid-template-columns:1fr; }
+}
+
+/* ✨ Edit Modal Animation + Style */
+#editModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 9999;
+}
+#editModal.show {
+  display: flex;
+  opacity: 1;
+}
+
+#editModal .modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+  transform: translateY(-30px);
+  transition: transform 0.3s ease;
+}
+#editModal.show .modal-content {
+  transform: translateY(0);
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.site-header .logo {
+  height: 50px;
+  width: auto;
+}
+
+.site-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1e3c72;
+  letter-spacing: 1px;
+}
+
+
+.course-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #e3e8ef;
+}
+
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <img src="D:\logo.png" alt="CODE FEST Logo" class="logo" />
+    <h1>CODE FEST</h1>
+  </header>
+<header>
+  <h1>Staff Dashboard — CODE FEST</h1>
+  <div>
+    <span style="margin-right:12px; color:#fff; opacity:0.95;" id="staffName"></span>
+    <a class="logout" onclick="logout()">Logout</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="top-grid">
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0; color:var(--primary)">Overview</h2>
+        <small class="muted"></small>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <h3>Total Students</h3>
+          <p id="totalStudents">0</p>
+        </div>
+        <div class="stat">
+           <h3>Total Enrollments</h3>
+           <p id="totalEnrollments">0</p> 
+        </div>
+        <div class="stat">
+          <h3>Your Courses</h3>
+          <p id="totalCourses">0</p>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <h3 style="margin:0 0 8px 0; font-size:14px; color:var(--muted);">Enrollments by course</h3>
+        <div id="chartWrap" class="chart-panel panel">
+          <canvas id="enrollChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="rightPanel">
+      <h3 style="margin-top:0; color:var(--primary)">Actions</h3>
+      <p class="muted">Quick links for staff</p>
+
+      <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="window.location.href='assessment.html'">Create Assessment</button>
+        <button class="btn btn-ghost" onclick="window.location.href='start.html'">Course Catalog</button>
+        <button class="btn btn-ghost" onclick="loadCourses(true)">Refresh Courses</button>
+      </div>
+
+      <hr style="margin:16px 0; border:none; border-top:1px dashed #eee" />
+
+      <div style="font-size:13px; color:var(--muted)">
+        <strong>Tip:</strong> Click a course card to open details (students, PPTs, videos, assessments).
+      </div>
+    </div>
+  </div>
+
+  <section class="panel" style="margin-top:14px;">
+    <h2 style="margin:0 0 8px 0; color:var(--primary)">Your Courses</h2>
+    <div id="coursesGrid" class="courses-grid"></div>
+  </section>
+</div>
+
+<!-- Edit Course Modal -->
+
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h2>Edit Course Details</h2>
+    <form id="editForm" enctype="multipart/form-data">
+      <label>Course Duration:</label>
+      <input type="text" id="editDuration" placeholder="e.g., 6 Weeks or 20 Hours" required />
+
+      <label>Topics to be Covered:</label>
+      <textarea id="editTopics" rows="4" placeholder="Enter topics separated by commas" required></textarea>
+
+      <label>Course Image:</label>
+      <input type="file" id="editImage" accept="image/*" />
+      <div id="imagePreview" style="margin-top:10px; text-align:center;">
+        <img id="previewImg" src="" alt="Course Image Preview"
+             style="max-width:100%; max-height:150px; border-radius:8px; display:none; margin-top:8px;">
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="button" id="closeModal" class="btn btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h2>Edit Course Details</h2>
+    <form id="editForm">
+      <label>Course Duration:</label>
+      <input type="text" id="editDuration" placeholder="e.g., 6 Weeks or 20 Hours" required />
+
+      <label>Topics to be Covered:</label>
+      <textarea id="editTopics" rows="4" placeholder="Enter topics separated by commas" required></textarea>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="button" id="closeModal" class="btn btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+let chart = null;
+let currentEditId = null;
+let courses = [];
+
+function escapeHtml(s){ if (s == null) return ""; return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function logout(){ localStorage.removeItem("user"); localStorage.removeItem("role"); window.location.href = "login.html"; }
+
+// staff-dashboard.html - loadStats() ஃபங்ஷனுக்குள்
+
+// staff-dashboard.html - loadStats() ஃபங்ஷனுக்குள்
+
+// staff-dashboard.html
+
+async function loadStats() {
+  try {
+    // 1. Total Students Count
+    const usersRes = await fetch(`${API_BASE}/users`);
+    const users = await usersRes.json();
+    const students = (users || []).filter(u => u.role === "student");
+    document.getElementById("totalStudents").textContent = students.length;
+
+    // 👇 2. Total Enrollments Count (சரியான API Path)
+    const totalEnrollRes = await fetch(`${API_BASE}/courses/total-enrollments`); 
+    
+    if(totalEnrollRes.ok) {
+        const totalEnrollData = await totalEnrollRes.json();
+        document.getElementById("totalEnrollments").textContent = totalEnrollData.total || 0;
+    } else {
+        // API தோல்வியடைந்தால், N/A அல்லது Status Code-ஐக் காட்டு
+        document.getElementById("totalEnrollments").textContent = `Error ${totalEnrollRes.status || 'N/A'}`; 
+        console.error("Enrollments API failed with status:", totalEnrollRes.status);
+    }
+    
+  } catch (e) { 
+    console.error("loadStats err", e); 
+    document.getElementById("totalEnrollments").textContent = "JS Error";
+}
+}
+
+
+async function loadChart(labelsOverride, valuesOverride) {
+  try {
+    let data;
+    if (labelsOverride && valuesOverride) {
+      data = { labels: labelsOverride, values: valuesOverride };
+    } else {
+      const res = await fetch(`${API_BASE}/courses/enrollments`);
+      if (!res.ok) return;
+      const resp = await res.json();
+      data = { labels: resp.map(r => r.title), values: resp.map(r => Number(r.studentsEnrolled || 0)) };
+    }
+
+    const labels = data.labels;
+    const values = data.values;
+    const ctx = document.getElementById("enrollChart").getContext("2d");
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{ label: "Students", data: values }]
+      },
+      options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  } catch (err) { console.warn("loadChart error", err); }
+}
+
+async function fetchStaffCourses(teacher){
+  try {
+    let res = await fetch(`${API_BASE}/courses/staff/${encodeURIComponent(teacher)}`);
+    if (!res.ok) res = await fetch(`${API_BASE}/staff/courses`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) { console.warn("fetchStaffCourses err", err); return []; }
+}
+
+async function loadCourses(forceRefresh = false) {
+  const userRaw = localStorage.getItem("user");
+  let user = null;
+  try { user = userRaw ? JSON.parse(userRaw) : null; } catch(e){ user = null; }
+  const teacher = user?.fullname || user?.name || user?.username || null;
+  document.getElementById("staffName").textContent = teacher ? `Hi, ${teacher}` : "";
+
+  const container = document.getElementById("coursesGrid");
+  container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--muted)">Loading courses…</div>`;
+
+  if (!teacher) {
+    container.innerHTML = `<div class="empty" style="grid-column:1/-1">Please log in as a staff to view assigned courses.</div>`;
+    return;
+  }
+
+  courses = await fetchStaffCourses(teacher);
+  document.getElementById("totalCourses").textContent = courses.length || 0;
+
+  // await loadChart(courses.map(c => c.title), courses.map(c => Number(c.studentsEnrolled || 0)));
+
+  container.innerHTML = "";
+  if (!courses.length) {
+    container.innerHTML = `<div class="empty" style="grid-column:1/-1">No courses assigned to <strong>${escapeHtml(teacher)}</strong>.</div>`;
+    return;
+  }
+
+  courses.forEach(course => {
+    const card = document.createElement("div");
+    card.className = "course-card";
+    card.innerHTML = `
+      <div class="course-header">
+        <div>
+          ${course.image ? `<img src="http://localhost:5000${course.image}" alt="${escapeHtml(course.title)}" class="course-image">` : ""}
+          <div class="course-title">${escapeHtml(course.title || "Untitled")}</div>
+          <div class="course-sub">${escapeHtml(course.description ? (course.description.substring(0,70) + (course.description.length>70?'...':'') ) : "No description")}</div>
+          <div class="course-sub"><strong>Duration:</strong> ${escapeHtml(course.duration || "—")}<br><strong>Topics:</strong> ${escapeHtml(course.topics || "—")}</div>
+        </div>
+        <div style="text-align:right; font-size:13px; color:var(--muted)">
+          Enrolled: <strong style="color:var(--primary)">${Number(course.studentsEnrolled||0)}</strong>
+        </div>
+      </div>
+
+      <div class="course-details" id="course-details-${course._id}">
+        <div class="course-actions" style="margin-top:8px;">
+          <button class="btn btn-ghost" onclick="event.stopPropagation(); window.location.href='add-ppt.html?courseId=${encodeURIComponent(course._id)}'">➕ PPT</button>
+          <button class="btn btn-ghost" onclick="event.stopPropagation(); window.location.href='add-video.html?courseId=${encodeURIComponent(course._id)}'">➕ Video</button>
+          <button class="btn btn-ghost" onclick="event.stopPropagation(); window.location.href='assessment.html?courseId=${encodeURIComponent(course._id)}'">➕ Assessment</button>
+          <button class="btn btn-ghost edit-btn" data-id="${course._id}">✏️ Edit</button>
+        </div>
+        
+      </div>
+    `;
+    card.onclick = () => toggleDetails(course._id);
+    container.appendChild(card);
+  });
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("edit-btn")) {
+    e.stopPropagation();
+    currentEditId = e.target.dataset.id;
+    const course = courses.find(c => c._id === currentEditId);
+    if (!course) return;
+    document.getElementById("editDuration").value = course.duration || "";
+    document.getElementById("editTopics").value = course.topics || "";
+    document.getElementById("editModal").classList.add("show");
+  }
+});
+
+document.getElementById("closeModal").addEventListener("click", () => {
+  document.getElementById("editModal").classList.remove("show");
+});
+
+document.getElementById("editForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const duration = document.getElementById("editDuration").value.trim();
+  const topics = document.getElementById("editTopics").value.trim();
+
+  try {
+    const formData = new FormData();
+formData.append("duration", duration);
+formData.append("topics", topics);
+
+const imageFile = document.getElementById("editImage").files[0];
+if (imageFile) {
+  formData.append("image", imageFile);
+}
+
+const res = await fetch(`${API_BASE}/courses/${currentEditId}`, {
+  method: "PUT",
+  body: formData
+});
+
+    if (res.ok) {
+      alert("✅ Course updated successfully!");
+      document.getElementById("editModal").classList.remove("show");
+      await loadCourses();
+    } else {
+      alert("❌ Failed to update course");
+    }
+  } catch (err) { console.error(err); alert("Error updating course"); }
+});
+
+// Image preview
+document.getElementById("editImage").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  const preview = document.getElementById("previewImg");
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      preview.src = event.target.result;
+      preview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.style.display = "none";
+  }
+});
+
+
+function toggleDetails(courseId) {
+  const el = document.getElementById(`course-details-${courseId}`);
+  if (!el) return;
+  const currentlyVisible = el.classList.contains("show");
+  document.querySelectorAll(".course-details").forEach(d => d.classList.remove("show"));
+  if (!currentlyVisible) el.classList.add("show");
+}
+
+function editCourse(id) {
+  const row = document.querySelector(`[data-id='${id}']`);
+  const title = row.querySelector('.course-title').textContent;
+  const description = row.querySelector('.course-desc').textContent;
+
+  document.getElementById("editCourseId").value = id;
+  document.getElementById("editCourseTitle").value = title;
+  document.getElementById("editCourseDesc").value = description;
+
+  const modal = document.getElementById("editModal");
+  modal.style.display = "flex";
+  setTimeout(() => modal.classList.add("show"), 10);
+}
+
+function closeModal() {
+  const modal = document.getElementById("editModal");
+  modal.classList.remove("show");
+  setTimeout(() => (modal.style.display = "none"), 300);
+}
+
+
+(async function init(){
+  await loadStats();
+  await loadCourses();
+  await loadChart();
+})();
+</script>
+</body>
+</html>

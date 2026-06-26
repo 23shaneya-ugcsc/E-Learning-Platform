@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard - CODE FEST</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #eef2f7 0%, #f9fbff 100%);
+      margin: 0; color: #222;
+      overflow-x: hidden;
+    }
+
+    header { background: #1e3c72; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    h1 { margin: 0; font-size: 26px; }
+
+    .container { padding: 30px; max-width: 1100px; margin: auto; }
+
+    section {
+      margin-bottom: 40px;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 { margin-bottom: 20px; color: #1e3c72; }
+
+    canvas {
+      width: 100% !important;
+      height: 400px !important;
+    }
+
+    .form-box {
+      display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 25px;
+    }
+    .form-box input, .form-box textarea, .form-box select {
+      flex: 1 1 250px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px;
+      transition: box-shadow 0.3s ease;
+    }
+    .form-box input:focus, .form-box textarea:focus, .form-box select:focus {
+      box-shadow: 0 0 5px rgba(30,60,114,0.5);
+      outline: none;
+    }
+    .form-box button {
+      background: linear-gradient(90deg,#1e3c72,#2a5298);
+      color: white; border: none; padding: 12px 20px;
+      border-radius: 8px; cursor: pointer; font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .form-box button:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(90deg,#2a5298,#1e3c72);
+    }
+
+    .stats-box {
+      display: flex; gap: 20px; justify-content: space-around;
+      flex-wrap: wrap; margin-bottom: 30px;
+    }
+    .stat {
+      flex: 1; background: linear-gradient(145deg, #f0f3ff, #ffffff);
+      padding: 20px;
+      border-radius: 10px; text-align: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1); min-width: 220px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+    .stat h3 { margin: 8px 0; color: #1e3c72; font-size: 26px; }
+
+    table {
+      border-collapse: collapse; width: 100%;
+      background: white; border-radius: 10px; overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    th, td { padding: 14px; text-align: center; border-bottom: 1px solid #eee; }
+    th {
+      background: linear-gradient(90deg,#1e3c72,#2a5298);
+      color: white; font-size: 15px;
+    }
+    tr:hover { background: #f3f6ff; transition: 0.2s; }
+
+    .small-btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: #2196f3;
+      margin: 2px;
+      transition: all 0.3s ease;
+    }
+    .small-btn:hover { transform: scale(1.05); }
+
+    .filters {
+      display: flex; gap: 15px; justify-content: center;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .filters input, .filters select {
+      padding: 10px; border: 1px solid #bbb; border-radius: 6px; min-width: 220px;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      background: white;
+      padding: 10px 0;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .site-header .logo { height: 50px; width: auto; }
+
+    .site-header h1 {
+      font-size: 28px;
+      font-weight: bold;
+      color: #1e3c72;
+      letter-spacing: 1px;
+    }
+
+    #editModal {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.4);
+      justify-content:center; align-items:center;
+      animation: fadeIn 0.4s ease;
+    }
+    #editModal .modal-content {
+      background:white;
+      padding:25px;
+      border-radius:12px;
+      width:400px;
+      box-shadow:0 5px 15px rgba(0,0,0,0.3);
+      animation: fadeIn 0.3s ease;
+    }
+    #editModal input, #editModal textarea {
+      width:100%;
+      padding:10px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      margin-bottom:12px;
+    }
+    #editModal h3 { color:#1e3c72; margin-top:0; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <img src="D:\\logo.png" alt="CODE FEST Logo" class="logo" />
+    <h1>CODE FEST</h1>
+  </header>
+  <header><h1>Admin Dashboard</h1></header>
+
+  <div class="container">
+    <div class="stats-box">
+      <div class="stat"><h3 id="totalCourses">0</h3><p>Total Courses</p></div>
+      <div class="stat"><h3 id="totalStudents">0</h3><p>Total Enrollments</p></div>
+      <div class="stat"><h3 id="topCourse">—</h3><p>Top Course</p></div>
+    </div>
+
+    <section>
+      <h2>📊 Course Enrollment Overview</h2>
+      <canvas id="enrollChart"></canvas>
+    </section>
+
+    <section>
+      <h2>📚 Manage Courses</h2>
+      
+      <form id="addCourseForm" class="form-box">
+        <input type="text" id="courseName" name="title" placeholder="Course Title" required>
+        <textarea id="courseDesc" name="description" placeholder="Course Description" required></textarea>
+        
+        <!-- ✅ FIXED: இங்குக் கேட்கப்பட்ட படி "Kavya", "Navya" நேரடியாக இணைக்கப்பட்டுள்ளது -->
+        <select id="courseTeacher" required>
+          <option value="">Select Staff</option>
+          <option value="Navya">Navya</option>
+          <option value="Kavya">Kavya</option>
+        </select>     
+        <button type="submit">➕ Add Course</button>
+      </form>
+
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="Search by course name...">
+        
+        <!-- ✅ FIXED: பில்டரிலும் ஆசிரியர்களின் பெயர்கள் நேரடியாக இணைக்கப்பட்டுள்ளது -->
+        <select id="teacherFilter">
+          <option value="">All Teachers</option>
+          <option value="Navya">Navya</option>
+          <option value="Kavya">Kavya</option>
+        </select>
+        <button class="small-btn" onclick="exportCourses()">📤 Export Data</button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Description</th>
+              <th>Teacher</th>
+              <th>Enrolled</th>
+              <th>Last Updated</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="courseTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Edit Course Modal -->
+  <div id="editModal">
+    <div class="modal-content">
+      <h3>Edit Course</h3>
+      <label>Title</label>
+      <input type="text" id="editTitle">
+      <label>Description</label>
+      <textarea id="editDescription"></textarea>
+      <div style="text-align:right;">
+        <button onclick="closeEditModal()" style="margin-right:8px;">Cancel</button>
+        <button onclick="saveEdit()" style="background:#007bff; color:white; border:none; padding:8px 14px; border-radius:6px;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Students Modal -->
+  <div id="studentsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:12px; width:450px; max-height:400px; overflow-y:auto; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+      <h3 style="color:#1e3c72;">Enrolled Students</h3>
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody id="studentsTable"></tbody>
+      </table>
+      <div style="text-align:right; margin-top:10px;">
+        <button onclick="closeStudentsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+let chart;
+let currentEditId = null;
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+// Load Courses
+async function loadCourses() {
+  try {
+    const res = await fetch(`${API_BASE}/courses`);
+    const courses = await res.json();
+    const table = document.getElementById("courseTable");
+    table.innerHTML = "";
+
+    document.getElementById("totalCourses").innerText = courses.length;
+    let totalEnrollments = 0;
+    let topCourse = { title: "—", studentsEnrolled: 0 };
+
+    courses.forEach(c => {
+      totalEnrollments += (c.studentsEnrolled || 0);
+      if ((c.studentsEnrolled || 0) > topCourse.studentsEnrolled) topCourse = c;
+    });
+
+    document.getElementById("totalStudents").innerText = totalEnrollments;
+    document.getElementById("topCourse").innerText = escapeHtml(topCourse.title);
+
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    const teacherFilterValue = document.getElementById("teacherFilter").value;
+
+    courses
+      .filter(c => c.title.toLowerCase().includes(query))
+      .filter(c => {
+        if (!teacherFilterValue) return true;
+        let tName = "—";
+        if (c.teacher) {
+          tName = typeof c.teacher === 'object' ? (c.teacher.name || c.teacher._id) : c.teacher;
+        }
+        return tName === teacherFilterValue;
+      })
+      .forEach(c => {
+        const tr = document.createElement("tr");
+        
+        // ✅ FIXED: ஆசிரியர் பெயரைக் காட்டும் லாஜிக் மிகச்சரியாக மாற்றப்பட்டுள்ளது
+        let teacherName = "—";
+        if (c.teacher) {
+          teacherName = typeof c.teacher === 'object' ? (c.teacher.name || "—") : c.teacher;
+        }
+
+        tr.innerHTML = `
+          <td>${escapeHtml(c.title)}</td>
+          <td>${escapeHtml(c.description)}</td>
+          <td>${escapeHtml(teacherName)}</td>
+          <td>${c.studentsEnrolled || 0}</td>
+          <td>${new Date(c.updatedAt || c.createdAt).toLocaleDateString()}</td>
+          <td>
+            <button class="small-btn" onclick="openEditModal('${c._id}', '${escapeHtml(c.title).replace(/'/g, "\\'")}', '${escapeHtml(c.description).replace(/'/g, "\\'")}')">Edit</button>
+            <button class="small-btn" style="background:#4CAF50;" onclick="viewStudents('${c._id}')">Students</button>
+          </td>`;
+        table.appendChild(tr);
+      });
+  } catch (err) {
+    console.error("Error loading courses:", err);
+  }
+}
+
+// Chart
+async function updateChart() {
+  try {
+    const res = await fetch(`${API_BASE}/courses/enrollments`);
+    if (!res.ok) return console.error("Failed to fetch chart data:", res.status);
+    
+    const data = await res.json();
+    const labels = data.map(d => d.title);
+    const values = data.map(d => Number(d.studentsEnrolled || 0));
+    const ctx = document.getElementById("enrollChart").getContext("2d");
+    
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{ label: "Students Enrolled", data: values, backgroundColor: "powderblue", borderWidth: 1 }]
+      },
+      options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+    });
+  } catch (err) {
+    console.error("Error updating chart:", err);
+  }
+}
+
+// Edit Course Logic
+function openEditModal(id, title, desc) {
+  currentEditId = id;
+  document.getElementById("editTitle").value = title;
+  document.getElementById("editDescription").value = desc;
+  document.getElementById("editModal").style.display = "flex";
+}
+
+function closeEditModal() {
+  document.getElementById("editModal").style.display = "none";
+}
+
+async function saveEdit() {
+  const newTitle = document.getElementById("editTitle").value.trim();
+  const newDesc = document.getElementById("editDescription").value.trim();
+
+  if (!newTitle || !newDesc) return alert("Please fill in both fields");
+
+  const res = await fetch(`${API_BASE}/courses/${currentEditId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: newTitle, description: newDesc }),
+  });
+
+  if (res.ok) {
+    alert("✅ Course updated successfully!");
+    closeEditModal();
+    loadCourses();
+    updateChart();
+  } else alert("❌ Failed to update course");
+}
+
+// Export CSV
+async function exportCourses() {
+  const res = await fetch(`${API_BASE}/courses`);
+  const data = await res.json();
+  const csv = ["Title,Description,Teacher,Enrolled"];
+  data.forEach(c => {
+    const tName = c.teacher ? (typeof c.teacher === 'object' ? c.teacher.name : c.teacher) : "—";
+    csv.push(`"${c.title}","${c.description}","${tName}",${c.studentsEnrolled || 0}`);
+  });
+  const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "courses_report.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// Add Course Logic
+document.getElementById("addCourseForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const title = document.getElementById("courseName").value.trim();
+  const description = document.getElementById("courseDesc").value.trim();
+  const teacher = document.getElementById("courseTeacher").value;
+  
+  if (!title || !description || !teacher) {
+    return alert("⚠️ Fill all fields including Teacher.");
+  }
+
+  const res = await fetch(`${API_BASE}/courses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, description, teacher }) // ✅ 'Navya' அல்லது 'Kavya' String ஆக Backend-க்கு செல்லும்
+  });
+
+  if (res.ok) {
+    alert("✅ Course added successfully!");
+    e.target.reset();
+    await loadCourses();
+    await updateChart();
+  } else {
+    alert("❌ Failed to add course");
+  }
+});
+
+function closeStudentsModal() {
+  document.getElementById("studentsModal").style.display = "none";
+}
+
+async function viewStudents(courseId) {
+  const res = await fetch(`${API_BASE}/courses/${courseId}/students`);
+  if (!res.ok) return alert("❌ Failed to load enrolled students");
+
+  const students = await res.json();
+  const tbody = document.getElementById("studentsTable");
+  tbody.innerHTML = "";
+
+  if (students.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="2">No students enrolled</td></tr>`;
+  } else {
+    students.forEach(s => {
+      tbody.innerHTML += `<tr><td>${escapeHtml(s.name || s.username || "—")}</td><td>${escapeHtml(s.email || "—")}</td></tr>`;
+    });
+  }
+  document.getElementById("studentsModal").style.display = "flex";
+}
+
+document.getElementById("searchInput").addEventListener("input", loadCourses);
+document.getElementById("teacherFilter").addEventListener("change", loadCourses);
+
+// Initial Execution
+async function init() {
+  // மத்த டைனமிக் ஸ்டாஃப் லோடிங் ஃபங்க்ஷன் (`loadStaffs`) நீக்கப்பட்டு நேரடியாக வேலை செய்யும் படி மாற்றப்பட்டுள்ளது.
+  await loadCourses();
+  await updateChart();
+}
+
+init();
+setInterval(() => { loadCourses(); updateChart(); }, 60000);
+</script>
+</body>
+</html>
