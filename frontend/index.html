@@ -4,72 +4,80 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CODE FEST - Learn to Code</title>
+
   <style>
-    body { margin:0; font-family:'Segoe UI',sans-serif; background:#f9f9f9; color:#333; }
 
-    /* HEADER */
-    header {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:15px 40px; background:#1e3c72; color:white; position:sticky; top:0; z-index:1000;
-    }
-    header h1 { margin:0; font-size:22px; }
-    nav a { margin:0 15px; text-decoration:none; color:white; font-weight:500; }
-    .buttons button {
-      background:orange; border:none; padding:8px 15px; margin-left:8px;
-      cursor:pointer; border-radius:5px; font-weight:bold;
+    * {
+      box-sizing: border-box;
+      scroll-behavior: smooth;
     }
 
-    /* HERO */
-    .hero {
-      background:linear-gradient(to right,#1e3c72,#2a5298);
-      color:white; padding:80px 20px; text-align:center;
-    }
-    .hero h2 { font-size:42px; margin-bottom:15px; }
-    .hero p { font-size:18px; margin-bottom:25px; }
-    .hero .cta-btn {
-      padding:12px 25px; background:orange; color:black;
-      border:none; border-radius:6px; font-size:18px; cursor:pointer;
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f9fc;
+      color: #333;
+      overflow-x: hidden;
     }
 
-    /* SECTIONS */
-    section { padding:60px 40px; }
-    .section-title { text-align:center; margin-bottom:30px; font-size:28px; color:#1e3c72; }
+    /* =========================
+       LOADING SCREEN
+    ========================= */
 
-    /* COURSE GRID */
-    .course-search { text-align:center; margin-bottom:20px; }
-    .course-search input {
-      padding:10px; width:50%; max-width:400px; border:1px solid #ccc;
-      border-radius:8px; font-size:16px;
-    }
-    .courses {
-      display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-      gap:20px;
-    }
-    .card {
-      background:#fff; border-radius:12px; padding:20px;
-      text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.1);
-      transition:transform 0.2s;
-    }
-    .card:hover { transform:translateY(-5px); }
-    .card h3 { margin:10px 0; color:#1e3c72; }
-    .card p { font-size:15px; min-height:50px; }
-    .card button {
-      margin-top:10px; padding:8px 16px; background:#1e3c72;
-      color:white; border:none; border-radius:6px; cursor:pointer;
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #071b3a, #1e3c72, #2a5298);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 99999;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
     }
 
-    /* FEATURES, TESTIMONIALS, FAQ */
-    .features,.testimonials,.faq {
-      display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px;
+    #loader.hide {
+      opacity: 0;
+      visibility: hidden;
     }
-    .partners img { width:120px; margin:15px; }
-    .testimonials .card { font-style:italic; background:#f3f4f6; }
-    .faq .card { text-align:left; }
 
-    footer {
-      background:#1e3c72; color:white; text-align:center; padding:30px;
+    .loader-logo {
+      font-size: 42px;
+      font-weight: 800;
+      color: white;
+      letter-spacing: 3px;
+      animation: loaderPulse 1.5s infinite;
     }
-    footer a { color:orange; text-decoration:none; }
+
+    .loader-text {
+      color: #ddd;
+      margin-top: 10px;
+      font-size: 15px;
+    }
+
+    .loader-ring {
+      width: 55px;
+      height: 55px;
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top-color: orange;
+      border-radius: 50%;
+      margin-bottom: 20px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes loaderPulse {
+      50% { transform: scale(1.08); }
+    }
+
+
+    /* =========================
+       HEADER LOGO
+    ========================= */
+
     .site-header {
       display: flex;
       align-items: center;
@@ -77,206 +85,1585 @@
       gap: 15px;
       background: white;
       padding: 10px 0;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      position: relative;
+      z-index: 1001;
     }
+
     .site-header .logo {
       height: 50px;
       width: auto;
+      transition: transform 0.4s ease;
     }
+
+    .site-header .logo:hover {
+      transform: rotate(-5deg) scale(1.1);
+    }
+
     .site-header h1 {
       font-size: 28px;
       font-weight: bold;
       color: #1e3c72;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      margin: 0;
     }
 
-    /* 💬 CHATBOT BUTTON */
+
+    /* =========================
+       MAIN HEADER
+    ========================= */
+
+    header:not(.site-header) {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:15px 40px;
+      background:rgba(30,60,114,0.96);
+      color:white;
+      position:sticky;
+      top:0;
+      z-index:1000;
+      box-shadow:0 4px 20px rgba(0,0,0,0.12);
+      backdrop-filter:blur(12px);
+    }
+
+    header:not(.site-header) h1 {
+      margin:0;
+      font-size:22px;
+    }
+
+    nav {
+      display:flex;
+      align-items:center;
+    }
+
+    nav a {
+      margin:0 15px;
+      text-decoration:none;
+      color:white;
+      font-weight:500;
+      position:relative;
+      transition:0.3s;
+    }
+
+    nav a::after {
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:-6px;
+      width:0;
+      height:2px;
+      background:orange;
+      transition:0.3s;
+    }
+
+    nav a:hover {
+      color:#ffd27a;
+    }
+
+    nav a:hover::after {
+      width:100%;
+    }
+
+    .buttons button {
+      background:orange;
+      border:none;
+      padding:9px 16px;
+      margin-left:8px;
+      cursor:pointer;
+      border-radius:7px;
+      font-weight:bold;
+      transition:0.3s;
+    }
+
+    .buttons button:hover {
+      transform:translateY(-3px);
+      box-shadow:0 8px 18px rgba(255,165,0,0.35);
+      background:#ffb52e;
+    }
+
+
+    /* =========================
+       HERO
+    ========================= */
+
+    .hero {
+      min-height:600px;
+      position:relative;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1), transparent 30%),
+        radial-gradient(circle at 80% 80%, rgba(255,165,0,0.12), transparent 30%),
+        linear-gradient(135deg,#0f2850,#1e3c72,#2a5298);
+      color:white;
+      padding:100px 20px 80px;
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .hero::before,
+    .hero::after {
+      content:"";
+      position:absolute;
+      border-radius:50%;
+      filter:blur(2px);
+      animation:floatShape 7s ease-in-out infinite;
+    }
+
+    .hero::before {
+      width:250px;
+      height:250px;
+      background:rgba(255,255,255,0.05);
+      top:40px;
+      left:-80px;
+    }
+
+    .hero::after {
+      width:350px;
+      height:350px;
+      background:rgba(255,165,0,0.06);
+      bottom:-150px;
+      right:-100px;
+      animation-delay:2s;
+    }
+
+    .hero-content {
+      position:relative;
+      z-index:2;
+      max-width:850px;
+    }
+
+    .hero-badge {
+      display:inline-block;
+      padding:8px 18px;
+      border:1px solid rgba(255,255,255,0.25);
+      background:rgba(255,255,255,0.08);
+      border-radius:30px;
+      font-size:14px;
+      margin-bottom:20px;
+      backdrop-filter:blur(10px);
+      animation:fadeDown 1s ease;
+    }
+
+    .hero h2 {
+      font-size:52px;
+      margin:10px 0 20px;
+      line-height:1.15;
+      animation:fadeUp 1s ease;
+    }
+
+    .hero h2 span {
+      color:#ffb52e;
+    }
+
+    .hero p {
+      font-size:19px;
+      margin-bottom:30px;
+      color:#e8edf7;
+      animation:fadeUp 1.2s ease;
+    }
+
+    .hero-buttons {
+      display:flex;
+      justify-content:center;
+      gap:15px;
+      flex-wrap:wrap;
+      animation:fadeUp 1.4s ease;
+    }
+
+    .hero .cta-btn {
+      padding:14px 28px;
+      background:orange;
+      color:#111;
+      border:none;
+      border-radius:8px;
+      font-size:17px;
+      cursor:pointer;
+      font-weight:bold;
+      transition:0.35s;
+      box-shadow:0 10px 25px rgba(255,165,0,0.25);
+    }
+
+    .hero .cta-btn:hover {
+      transform:translateY(-4px) scale(1.03);
+      box-shadow:0 15px 35px rgba(255,165,0,0.4);
+    }
+
+    .hero-secondary {
+      padding:14px 28px;
+      border:1px solid rgba(255,255,255,0.35);
+      background:rgba(255,255,255,0.08);
+      color:white;
+      border-radius:8px;
+      font-size:17px;
+      cursor:pointer;
+      backdrop-filter:blur(10px);
+      transition:0.35s;
+    }
+
+    .hero-secondary:hover {
+      background:white;
+      color:#1e3c72;
+      transform:translateY(-4px);
+    }
+
+
+    /* =========================
+       FLOATING CODE
+    ========================= */
+
+    .floating-code {
+      position:absolute;
+      color:rgba(255,255,255,0.12);
+      font-family:monospace;
+      font-size:28px;
+      animation:floatCode 8s ease-in-out infinite;
+      user-select:none;
+    }
+
+    .code1 { top:15%; left:8%; }
+    .code2 { top:25%; right:10%; animation-delay:2s; }
+    .code3 { bottom:18%; left:15%; animation-delay:4s; }
+    .code4 { bottom:25%; right:15%; animation-delay:1s; }
+
+    @keyframes floatCode {
+      0%,100% { transform:translateY(0) rotate(0); }
+      50% { transform:translateY(-25px) rotate(5deg); }
+    }
+
+    @keyframes floatShape {
+      0%,100% { transform:translate(0,0); }
+      50% { transform:translate(30px,-30px); }
+    }
+
+
+    /* =========================
+       STATS
+    ========================= */
+
+    .stats {
+      width:min(1000px,90%);
+      margin:-50px auto 0;
+      position:relative;
+      z-index:5;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      background:white;
+      border-radius:18px;
+      box-shadow:0 15px 45px rgba(0,0,0,0.12);
+      overflow:hidden;
+    }
+
+    .stat {
+      padding:28px 15px;
+      text-align:center;
+      border-right:1px solid #eee;
+    }
+
+    .stat:last-child {
+      border-right:none;
+    }
+
+    .stat h3 {
+      font-size:30px;
+      color:#1e3c72;
+      margin:0;
+    }
+
+    .stat p {
+      margin:7px 0 0;
+      color:#777;
+      font-size:14px;
+    }
+
+
+    /* =========================
+       SECTIONS
+    ========================= */
+
+    section {
+      padding:80px 40px;
+    }
+
+    .section-title {
+      text-align:center;
+      margin-bottom:15px;
+      font-size:32px;
+      color:#1e3c72;
+    }
+
+    .section-subtitle {
+      text-align:center;
+      color:#777;
+      max-width:650px;
+      margin:0 auto 40px;
+    }
+
+
+    /* =========================
+       COURSE SEARCH
+    ========================= */
+
+    .course-search {
+      text-align:center;
+      margin-bottom:35px;
+    }
+
+    .course-search input {
+      padding:14px 20px;
+      width:50%;
+      max-width:500px;
+      border:1px solid #ddd;
+      border-radius:30px;
+      font-size:16px;
+      outline:none;
+      transition:0.3s;
+      box-shadow:0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .course-search input:focus {
+      border-color:#2a5298;
+      box-shadow:0 0 0 4px rgba(42,82,152,0.1);
+      transform:scale(1.02);
+    }
+
+
+    /* =========================
+       COURSES
+    ========================= */
+
+    .courses {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:25px;
+      max-width:1200px;
+      margin:auto;
+    }
+
+    .card {
+      background:#fff;
+      border-radius:16px;
+      padding:20px;
+      text-align:center;
+      box-shadow:0 5px 20px rgba(0,0,0,0.07);
+      transition:all 0.4s ease;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .card::before {
+      content:"";
+      position:absolute;
+      top:0;
+      left:-100%;
+      width:100%;
+      height:3px;
+      background:linear-gradient(90deg,#1e3c72,orange);
+      transition:0.5s;
+    }
+
+    .card:hover::before {
+      left:0;
+    }
+
+    .card:hover {
+      transform:translateY(-10px);
+      box-shadow:0 18px 40px rgba(30,60,114,0.15);
+    }
+
+    .courses .card img {
+      transition:transform 0.5s ease;
+    }
+
+    .courses .card:hover img {
+      transform:scale(1.06);
+    }
+
+    .card h3 {
+      margin:15px 0 10px;
+      color:#1e3c72;
+    }
+
+    .card p {
+      font-size:15px;
+      min-height:50px;
+      color:#666;
+      line-height:1.6;
+    }
+
+    .card button {
+      margin-top:10px;
+      padding:10px 20px;
+      background:#1e3c72;
+      color:white;
+      border:none;
+      border-radius:7px;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    .card button:hover {
+      background:#2a5298;
+      transform:translateY(-2px);
+      box-shadow:0 7px 15px rgba(30,60,114,0.25);
+    }
+
+
+    /* =========================
+       FEATURES
+    ========================= */
+
+    #features {
+      background:linear-gradient(180deg,#f7f9fc,#eef3fa);
+    }
+
+    .features {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:25px;
+      max-width:1150px;
+      margin:auto;
+    }
+
+    .feature-card {
+      padding:30px 25px;
+      text-align:center;
+      background:rgba(255,255,255,0.8);
+      border:1px solid rgba(255,255,255,0.7);
+      border-radius:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.06);
+      transition:0.4s;
+    }
+
+    .feature-card:hover {
+      transform:translateY(-8px);
+      box-shadow:0 18px 40px rgba(0,0,0,0.1);
+    }
+
+    .feature-icon {
+      width:65px;
+      height:65px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 15px;
+      background:#eef3ff;
+      border-radius:18px;
+      font-size:30px;
+      transition:0.4s;
+    }
+
+    .feature-card:hover .feature-icon {
+      transform:rotate(8deg) scale(1.1);
+    }
+
+
+    /* =========================
+       PARTNERS
+    ========================= */
+
+    .partners {
+      text-align:center;
+      background:white;
+    }
+
+    .partner-logos {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:35px;
+    }
+
+    .partner-logos img {
+      width:130px;
+      max-height:70px;
+      object-fit:contain;
+      filter:grayscale(100%);
+      opacity:0.65;
+      transition:0.4s;
+    }
+
+    .partner-logos img:hover {
+      filter:grayscale(0%);
+      opacity:1;
+      transform:scale(1.12);
+    }
+
+
+    /* =========================
+       TESTIMONIALS
+    ========================= */
+
+    #testimonials {
+      background:#f7f9fc;
+    }
+
+    .testimonials {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:25px;
+      max-width:1100px;
+      margin:auto;
+    }
+
+    .testimonial-card {
+      background:white;
+      padding:28px;
+      border-radius:18px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.06);
+      transition:0.4s;
+    }
+
+    .testimonial-card:hover {
+      transform:translateY(-8px);
+    }
+
+    .stars {
+      color:#ffae00;
+      font-size:20px;
+      margin-bottom:12px;
+    }
+
+
+    /* =========================
+       FAQ
+    ========================= */
+
+    .faq {
+      max-width:900px;
+      margin:auto;
+      display:flex;
+      flex-direction:column;
+      gap:15px;
+    }
+
+    .faq-item {
+      background:white;
+      border-radius:12px;
+      overflow:hidden;
+      box-shadow:0 5px 18px rgba(0,0,0,0.05);
+    }
+
+    .faq-question {
+      width:100%;
+      border:none;
+      background:white;
+      padding:20px;
+      text-align:left;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:#1e3c72;
+    }
+
+    .faq-answer {
+      max-height:0;
+      overflow:hidden;
+      transition:max-height 0.4s ease;
+      padding:0 20px;
+      color:#666;
+    }
+
+    .faq-item.active .faq-answer {
+      max-height:150px;
+      padding-bottom:20px;
+    }
+
+    .faq-question span {
+      font-size:24px;
+      transition:0.3s;
+    }
+
+    .faq-item.active .faq-question span {
+      transform:rotate(45deg);
+    }
+
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    footer {
+      background:#102a52;
+      color:white;
+      text-align:center;
+      padding:40px 20px;
+    }
+
+    footer a {
+      color:orange;
+      text-decoration:none;
+    }
+
+    footer a:hover {
+      text-decoration:underline;
+    }
+
+
+    /* =========================
+       CHATBOT
+    ========================= */
+
     .chatbot-btn {
-      position: fixed;
-      bottom: 25px;
-      right: 25px;
-      background: #1e3c72;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 65px;
-      height: 65px;
-      font-size: 28px;
-      cursor: pointer;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      z-index: 9999;
+      position:fixed;
+      bottom:25px;
+      right:25px;
+      background:#1e3c72;
+      color:white;
+      border:none;
+      border-radius:50%;
+      width:65px;
+      height:65px;
+      font-size:28px;
+      cursor:pointer;
+      box-shadow:0 8px 25px rgba(0,0,0,0.25);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:all 0.3s ease;
+      z-index:9999;
+      animation:chatPulse 2s infinite;
     }
+
     .chatbot-btn:hover {
-      background: orange;
-      color: #1e3c72;
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      background:orange;
+      color:#1e3c72;
+      transform:scale(1.12);
+      animation:none;
     }
+
+    @keyframes chatPulse {
+      0% { box-shadow:0 0 0 0 rgba(30,60,114,0.4); }
+      70% { box-shadow:0 0 0 18px rgba(30,60,114,0); }
+      100% { box-shadow:0 0 0 0 rgba(30,60,114,0); }
+    }
+
     .chatbot-tooltip {
-      position: absolute;
-      bottom: 80px;
-      right: 0;
-      background: #1e3c72;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
-      pointer-events: none;
+      position:absolute;
+      bottom:80px;
+      right:0;
+      background:#1e3c72;
+      color:white;
+      padding:7px 12px;
+      border-radius:7px;
+      font-size:13px;
+      opacity:0;
+      transform:translateY(10px);
+      transition:all 0.3s ease;
+      pointer-events:none;
+      white-space:nowrap;
     }
+
     .chatbot-btn:hover .chatbot-tooltip {
-      opacity: 1;
-      transform: translateY(0);
+      opacity:1;
+      transform:translateY(0);
+    }
+
+
+    /* =========================
+       BACK TO TOP
+    ========================= */
+
+    #backTop {
+      position:fixed;
+      bottom:105px;
+      right:32px;
+      width:45px;
+      height:45px;
+      border:none;
+      border-radius:50%;
+      background:white;
+      color:#1e3c72;
+      font-size:20px;
+      cursor:pointer;
+      box-shadow:0 5px 20px rgba(0,0,0,0.15);
+      opacity:0;
+      visibility:hidden;
+      transition:0.3s;
+      z-index:9998;
+    }
+
+    #backTop.show {
+      opacity:1;
+      visibility:visible;
+    }
+
+    #backTop:hover {
+      transform:translateY(-4px);
+      background:#1e3c72;
+      color:white;
+    }
+
+
+    /* =========================
+       SCROLL REVEAL
+    ========================= */
+
+    .reveal {
+      opacity:0;
+      transform:translateY(40px);
+      transition:opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .reveal.active {
+      opacity:1;
+      transform:translateY(0);
+    }
+
+
+    /* =========================
+       RESPONSIVE
+    ========================= */
+
+    @media(max-width:900px) {
+
+      header:not(.site-header) {
+        padding:15px 20px;
+      }
+
+      nav a {
+        margin:0 7px;
+        font-size:14px;
+      }
+
+      .hero h2 {
+        font-size:40px;
+      }
+
+      .stats {
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .stat {
+        border-bottom:1px solid #eee;
+      }
+    }
+
+    @media(max-width:650px) {
+
+      header:not(.site-header) {
+        flex-direction:column;
+        gap:12px;
+      }
+
+      nav {
+        flex-wrap:wrap;
+        justify-content:center;
+        gap:5px;
+      }
+
+      .buttons {
+        margin-top:5px;
+      }
+
+      .hero {
+        min-height:520px;
+        padding:80px 20px;
+      }
+
+      .hero h2 {
+        font-size:32px;
+      }
+
+      .hero p {
+        font-size:16px;
+      }
+
+      .stats {
+        width:92%;
+      }
+
+      .stat h3 {
+        font-size:24px;
+      }
+
+      section {
+        padding:60px 20px;
+      }
+
+      .course-search input {
+        width:90%;
+      }
+
+      .floating-code {
+        display:none;
+      }
     }
 
   </style>
 </head>
+
 <body>
+
+  <!-- =========================
+       LOADING SCREEN
+  ========================== -->
+
+  <div id="loader">
+    <div class="loader-ring"></div>
+    <div class="loader-logo">CODE FEST</div>
+    <div class="loader-text">Preparing your learning experience...</div>
+  </div>
+
+
+  <!-- =========================
+       TOP LOGO
+  ========================== -->
+
   <header class="site-header">
     <img src="D:\\logo.png" alt="CODE FEST Logo" class="logo" />
     <h1>CODE FEST</h1>
   </header>
 
-  <!-- HEADER -->
+
+  <!-- =========================
+       NAVIGATION
+  ========================== -->
+
   <header>
+
     <h1>CODE FEST</h1>
+
     <nav>
       <a href="#courses">Courses</a>
       <a href="#features">Features</a>
       <a href="#partners">Partners</a>
+      <a href="#testimonials">Reviews</a>
       <a href="#faq">FAQ</a>
     </nav>
+
     <div class="buttons">
       <button onclick="location.href='login.html'">Login</button>
       <button onclick="location.href='register.html'">Register</button>
     </div>
+
   </header>
 
-  <!-- HERO -->
+
+  <!-- =========================
+       HERO
+  ========================== -->
+
   <div class="hero">
-    <h2>“Empowering Coders, One Quiz at a Time”</h2>
-    <p>Master coding with fun quizzes, interactive lessons, and real-world projects.</p>
-    <button class="cta-btn" onclick="document.getElementById('courses').scrollIntoView()">Explore Courses</button>
+
+    <div class="floating-code code1">&lt;/&gt;</div>
+    <div class="floating-code code2">{ }</div>
+    <div class="floating-code code3">01</div>
+    <div class="floating-code code4">&lt;code&gt;</div>
+
+    <div class="hero-content">
+
+      <div class="hero-badge">
+        🚀 Learn • Practice • Build • Succeed
+      </div>
+
+      <h2>
+        Empowering <span>Coders</span>,<br>
+        One Quiz at a Time
+      </h2>
+
+      <p>
+        Master programming through interactive lessons,
+        quizzes, projects and skill-based learning.
+      </p>
+
+      <div class="hero-buttons">
+
+        <button
+          class="cta-btn"
+          onclick="document.getElementById('courses').scrollIntoView()">
+          🚀 Explore Courses
+        </button>
+
+        <button
+          class="hero-secondary"
+          onclick="location.href='register.html'">
+          🎓 Start Learning
+        </button>
+
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- COURSES -->
-  <section id="courses">
-    <h2 class="section-title">📚 Popular Courses</h2>
-    <div class="course-search">
-      <input type="text" id="searchBox" placeholder="🔍 Search for a course..." onkeyup="filterCourses()"/>
+
+  <!-- =========================
+       STATS
+  ========================== -->
+
+  <div class="stats reveal">
+
+    <div class="stat">
+      <h3 class="counter" data-target="10">0+</h3>
+      <p>Learning Courses</p>
     </div>
+
+    <div class="stat">
+      <h3 class="counter" data-target="500">0+</h3>
+      <p>Active Learners</p>
+    </div>
+
+    <div class="stat">
+      <h3 class="counter" data-target="1000">0+</h3>
+      <p>Quizzes Completed</p>
+    </div>
+
+    <div class="stat">
+      <h3 class="counter" data-target="100">0%</h3>
+      <p>Free Learning</p>
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       COURSES
+  ========================== -->
+
+  <section id="courses" class="reveal">
+
+    <h2 class="section-title">
+      📚 Popular Courses
+    </h2>
+
+    <p class="section-subtitle">
+      Choose a course, learn at your own pace and test your
+      knowledge through interactive assessments.
+    </p>
+
+    <div class="course-search">
+
+      <input
+        type="text"
+        id="searchBox"
+        placeholder="🔍 Search for a course..."
+        onkeyup="filterCourses()"/>
+
+    </div>
+
     <div class="courses" id="courseContainer">
       <!-- Courses will load here from DB -->
     </div>
+
   </section>
 
-  <!-- FEATURES -->
-  <section id="features">
-    <h2 class="section-title">✨ Why Choose CODE FEST?</h2>
+
+  <!-- =========================
+       FEATURES
+  ========================== -->
+
+  <section id="features" class="reveal">
+
+    <h2 class="section-title">
+      ✨ Why Choose CODE FEST?
+    </h2>
+
+    <p class="section-subtitle">
+      Everything you need to improve your programming skills
+      in one learning platform.
+    </p>
+
     <div class="features">
-      <div class="card"><h3>📈 Track Progress</h3><p>Monitor your scores, achievements, and certificates as you grow.</p></div>
-      <div class="card"><h3>👨‍🏫 Expert Instructors</h3><p>Learn from industry professionals and top university professors.</p></div>
-      <div class="card"><h3>🌍 Global Community</h3><p>Connect with coders worldwide and collaborate on projects.</p></div>
-      <div class="card"><h3>🎓 Certification</h3><p>Earn certificates on completion to boost your career profile.</p></div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h3>Track Progress</h3>
+        <p>
+          Monitor your scores, achievements and certificates
+          as you grow.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">👨‍🏫</div>
+        <h3>Expert Instructors</h3>
+        <p>
+          Learn with structured lessons and quality
+          educational content.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🌍</div>
+        <h3>Global Community</h3>
+        <p>
+          Learn, practice and connect with other coding
+          enthusiasts.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🎓</div>
+        <h3>Certification</h3>
+        <p>
+          Earn certificates after successfully completing
+          your assessments.
+        </p>
+      </div>
+
     </div>
+
   </section>
 
-  <!-- PARTNERS -->
-  <section id="partners" class="partners">
-    <h2 class="section-title">🎓 Our University Partners</h2>
-    <div>
-      <img src="D:\\Main Project 25-26\\hardvest.png" alt="Harvard">
-      <img src="D:\\Main Project 25-26\\oxford.png" alt="Stanford">
-      <img src="D:\\Main Project 25-26\\standford.png" alt="Oxford">
-      <img src="D:\\Main Project 25-26\\mit.png" alt="MIT">
+
+  <!-- =========================
+       PARTNERS
+  ========================== -->
+
+  <section id="partners" class="partners reveal">
+
+    <h2 class="section-title">
+      🎓 Our University Partners
+    </h2>
+
+    <p class="section-subtitle">
+      Inspired by leading educational institutions.
+    </p>
+
+    <div class="partner-logos">
+
+      <img
+        src="D:\\Main Project 25-26\\hardvest.png"
+        alt="Harvard">
+
+      <img
+        src="D:\\Main Project 25-26\\oxford.png"
+        alt="Stanford">
+
+      <img
+        src="D:\\Main Project 25-26\\standford.png"
+        alt="Oxford">
+
+      <img
+        src="D:\\Main Project 25-26\\mit.png"
+        alt="MIT">
+
     </div>
+
   </section>
 
-  <!-- TESTIMONIALS -->
-  <section id="testimonials">
-    <h2 class="section-title">⭐ What Our Students Say</h2>
+
+  <!-- =========================
+       TESTIMONIALS
+  ========================== -->
+
+  <section id="testimonials" class="reveal">
+
+    <h2 class="section-title">
+      ⭐ What Our Students Say
+    </h2>
+
+    <p class="section-subtitle">
+      See what learners think about their CODE FEST experience.
+    </p>
+
     <div class="testimonials">
-      <div class="card">“CODE FEST helped me crack my coding interviews with confidence!” – Priya</div>
-      <div class="card">“The quizzes are fun and interactive, just like playing a game.” – Rahul</div>
-      <div class="card">“Great mentors and amazing community. Highly recommend!” – Sneha</div>
+
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>
+          “CODE FEST helped me crack my coding interviews
+          with confidence!”
+        </p>
+        <strong>– Priya</strong>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>
+          “The quizzes are fun and interactive, just like
+          playing a game.”
+        </p>
+        <strong>– Rahul</strong>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>
+          “Great mentors and amazing community.
+          Highly recommend!”
+        </p>
+        <strong>– Sneha</strong>
+      </div>
+
     </div>
+
   </section>
 
-  <!-- FAQ -->
-  <section id="faq">
-    <h2 class="section-title">❓ Frequently Asked Questions</h2>
+
+  <!-- =========================
+       FAQ
+  ========================== -->
+
+  <section id="faq" class="reveal">
+
+    <h2 class="section-title">
+      ❓ Frequently Asked Questions
+    </h2>
+
+    <p class="section-subtitle">
+      Quick answers to common questions about CODE FEST.
+    </p>
+
     <div class="faq">
-      <div class="card"><h3>How do I enroll in a course?</h3><p>Click on the course card, login/register, then enroll.</p></div>
-      <div class="card"><h3>Are certificates free?</h3><p>Yes, certificates are awarded free upon passing the assessments.</p></div>
-      <div class="card"><h3>Can I access courses offline?</h3><p>Yes, download slides & notes to continue learning without internet.</p></div>
+
+      <div class="faq-item">
+
+        <button class="faq-question">
+          How do I enroll in a course?
+          <span>+</span>
+        </button>
+
+        <div class="faq-answer">
+          <p>
+            Click on the course card, login or register,
+            and then enroll in your selected course.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="faq-item">
+
+        <button class="faq-question">
+          Are certificates free?
+          <span>+</span>
+        </button>
+
+        <div class="faq-answer">
+          <p>
+            Yes. Certificates are awarded free upon
+            successfully passing the assessment.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="faq-item">
+
+        <button class="faq-question">
+          Can I access courses offline?
+          <span>+</span>
+        </button>
+
+        <div class="faq-answer">
+          <p>
+            Course slides and notes can be downloaded
+            when available to continue learning.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="faq-item">
+
+        <button class="faq-question">
+          Is CODE FEST free?
+          <span>+</span>
+        </button>
+
+        <div class="faq-answer">
+          <p>
+            Yes. CODE FEST courses are designed to provide
+            free learning opportunities for students.
+          </p>
+        </div>
+
+      </div>
+
     </div>
+
   </section>
 
-  <!-- FOOTER -->
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+
   <footer>
-    <p>© 2025 CODE FEST | Built for coders, by coders 💻</p>
-    <p>Contact: <a href="mailto:support@codefest.com">support@codefest.com</a></p>
+
+    <h2>CODE FEST 💻</h2>
+
+    <p>
+      Learn. Practice. Build. Succeed.
+    </p>
+
+    <p>
+      © 2025 CODE FEST | Built for coders, by coders 💻
+    </p>
+
+    <p>
+      Contact:
+      <a href="mailto:support@codefest.com">
+        support@codefest.com
+      </a>
+    </p>
+
   </footer>
 
-  <!-- 💬 CHATBOT BUTTON -->
-  <button class="chatbot-btn" onclick="window.location.href='chatbot.html'">
-    💬
-    <span class="chatbot-tooltip">Chat with CodeBot</span>
+
+  <!-- =========================
+       BACK TO TOP
+  ========================== -->
+
+  <button id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    ↑
   </button>
 
-  <!-- JS -->
+
+  <!-- =========================
+       CHATBOT
+  ========================== -->
+
+  <button
+    class="chatbot-btn"
+    onclick="window.location.href='chatbot.html'">
+
+    💬
+
+    <span class="chatbot-tooltip">
+      Chat with CodeBot
+    </span>
+
+  </button>
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================== -->
+
   <script>
-    // Fetch courses from backend
+
+    /* =========================
+       LOADER
+    ========================== */
+
+    window.addEventListener("load", function() {
+
+      setTimeout(function() {
+
+        document
+          .getElementById("loader")
+          .classList.add("hide");
+
+      }, 700);
+
+    });
+
+
+    /* =========================
+       EXISTING COURSE FUNCTION
+       KEPT AS IT IS
+    ========================== */
+
     async function loadCourses() {
+
       try {
-        const res = await fetch("http://localhost:5000/api/courses");
-        const courses = await res.json();
-        const container = document.getElementById("courseContainer");
+
+        const res =
+          await fetch("http://localhost:5000/api/courses");
+
+        const courses =
+          await res.json();
+
+        const container =
+          document.getElementById("courseContainer");
+
         container.innerHTML = "";
+
         courses.forEach(course => {
-          const card = document.createElement("div");
+
+          const card =
+            document.createElement("div");
+
           card.className = "card";
+
           card.innerHTML = `
-            <img src="${course.image}" alt="${course.title}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;"/>
+
+            <img
+              src="${course.image}"
+              alt="${course.title}"
+              style="
+                width:100%;
+                height:150px;
+                object-fit:cover;
+                border-radius:8px;
+              "
+            />
+
             <h3>${course.title}</h3>
+
             <p>${course.description}</p>
-            <button onclick="viewCourse('${course._id}')">View Details</button>
+
+            <button
+              onclick="viewCourse('${course._id}')">
+
+              View Details
+
+            </button>
+
           `;
+
           container.appendChild(card);
+
         });
-      } catch (err) {
-        console.error("Error loading courses:", err);
+
       }
+
+      catch (err) {
+
+        console.error(
+          "Error loading courses:",
+          err
+        );
+
+      }
+
     }
 
-    // Filter courses
+
+    /* =========================
+       EXISTING FILTER FUNCTION
+    ========================== */
+
     function filterCourses() {
-      const search = document.getElementById("searchBox").value.toLowerCase();
-      const cards = document.querySelectorAll(".courses .card");
+
+      const search =
+        document
+          .getElementById("searchBox")
+          .value
+          .toLowerCase();
+
+      const cards =
+        document.querySelectorAll(
+          ".courses .card"
+        );
+
       cards.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        card.style.display = text.includes(search) ? "block" : "none";
+
+        const text =
+          card.textContent.toLowerCase();
+
+        card.style.display =
+          text.includes(search)
+          ? "block"
+          : "none";
+
       });
+
     }
 
-    // View course details
+
+    /* =========================
+       EXISTING VIEW COURSE
+    ========================== */
+
     function viewCourse(courseId) {
-      const isLoggedIn = localStorage.getItem("user");
+
+      const isLoggedIn =
+        localStorage.getItem("user");
+
       if (!isLoggedIn) {
-        alert("Please login or register to view course details.");
+
+        alert(
+          "Please login or register to view course details."
+        );
+
         location.href = "login.html";
-      } else {
-        location.href = `course-details.html?id=${courseId}`;
+
       }
+
+      else {
+
+        location.href =
+          `course-details.html?id=${courseId}`;
+
+      }
+
     }
+
+
+    /* =========================
+       COUNTER ANIMATION
+    ========================== */
+
+    function animateCounters() {
+
+      const counters =
+        document.querySelectorAll(".counter");
+
+      counters.forEach(counter => {
+
+        const target =
+          Number(counter.dataset.target);
+
+        let current = 0;
+
+        const increment =
+          Math.max(1, Math.ceil(target / 60));
+
+        const timer =
+          setInterval(() => {
+
+            current += increment;
+
+            if (current >= target) {
+
+              current = target;
+
+              clearInterval(timer);
+
+            }
+
+            if (target === 100) {
+
+              counter.textContent =
+                current + "%";
+
+            }
+
+            else {
+
+              counter.textContent =
+                current + "+";
+
+            }
+
+          }, 25);
+
+      });
+
+    }
+
+
+    /* =========================
+       SCROLL REVEAL
+    ========================== */
+
+    const revealObserver =
+      new IntersectionObserver(
+        entries => {
+
+          entries.forEach(entry => {
+
+            if (entry.isIntersecting) {
+
+              entry.target.classList.add("active");
+
+              if (
+                entry.target.classList.contains("stats")
+              ) {
+
+                animateCounters();
+
+              }
+
+              revealObserver.unobserve(
+                entry.target
+              );
+
+            }
+
+          });
+
+        },
+        {
+          threshold:0.15
+        }
+      );
+
+
+    document
+      .querySelectorAll(".reveal")
+      .forEach(element => {
+
+        revealObserver.observe(element);
+
+      });
+
+
+    /* =========================
+       FAQ ACCORDION
+    ========================== */
+
+    document
+      .querySelectorAll(".faq-question")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          function() {
+
+            const item =
+              this.parentElement;
+
+            document
+              .querySelectorAll(".faq-item")
+              .forEach(other => {
+
+                if (other !== item) {
+
+                  other.classList.remove(
+                    "active"
+                  );
+
+                }
+
+              });
+
+            item.classList.toggle("active");
+
+          }
+        );
+
+      });
+
+
+    /* =========================
+       BACK TO TOP
+    ========================== */
+
+    window.addEventListener(
+      "scroll",
+      function() {
+
+        const backTop =
+          document.getElementById("backTop");
+
+        if (window.scrollY > 500) {
+
+          backTop.classList.add("show");
+
+        }
+
+        else {
+
+          backTop.classList.remove("show");
+
+        }
+
+      }
+    );
+
+
+    /* =========================
+       LOAD COURSES
+    ========================== */
 
     window.onload = loadCourses;
+
   </script>
+
 </body>
 </html>

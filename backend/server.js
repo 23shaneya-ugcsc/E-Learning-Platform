@@ -9,14 +9,15 @@ const bcrypt = require("bcrypt");
 const assessmentRoutes = require("./routes/assessments");
 const courseRoutes = require("./routes/courses");
 const submissionRoutes = require("./routes/submissions");
+const nodemailer = require("nodemailer");
 
 
 // const studentRoutes = require("./routes/studentRoutes"); // ✅ keep only this one
 
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.use(cors());app.use(express.json({ limit: "10mb" }));
+
 const router = express.Router();
 
 
@@ -1082,6 +1083,113 @@ router.post("/", async (req, res) => {
     res.status(500).json({ message: "Error creating course" });
   }
 });
+
+// Send course certificate to the student's registered email
+app.post("/api/certificate/send-email", async (req, res) => {
+  try {
+    const {
+      studentId,
+      certificateImage,
+      courseName,
+      score,
+      total
+    } = req.body;
+
+    if (!studentId || !certificateImage) {
+      return res.status(400).json({
+        success: false,
+        message: "Student ID and certificate image are required."
+      });
+    }
+
+    // Email settings must be configured in environment variables
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return res.status(500).json({
+        success: false,
+        message: "Email settings are not configured on the server."
+      });
+    }
+
+    // Find the registered student and their email
+    const student = await User.findById(studentId);
+
+    if (!student || student.role !== "student") {
+      return res.status(404).json({
+        success: false,
+        message: "Student account not found."
+      });
+    }
+
+    if (!student.email) {
+      return res.status(400).json({
+        success: false,
+        message: "No registered email found for this student."
+      });
+    }
+
+    // Accept PNG image data only
+    const imageMatch = certificateImage.match(
+      /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/
+    );
+
+    if (!imageMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid certificate image."
+      });
+    }
+
+    const imageBuffer = Buffer.from(imageMatch[1], "base64");
+
+    if (imageBuffer.length > 7 * 1024 * 1024) {
+      return res.status(413).json({
+        success: false,
+        message: "Certificate image is too large to email."
+      });
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    await transporter.sendMail({
+      from: `"CODE FEST" <${process.env.EMAIL_USER}>`,
+      to: student.email,
+      subject: "Your CODE FEST Course Certificate",
+      text:
+        `Congratulations ${student.username || student.fullname || "Student"}!\n\n` +
+        `You have successfully completed the course: ${courseName || "CODE FEST Course"}.\n` +
+        `Assessment score: ${score ?? "N/A"} / ${total ?? "N/A"}.\n\n` +
+        "Your certificate is attached as a PNG image.\n\n" +
+        "Regards,\nCODE FEST Team",
+      attachments: [
+        {
+          filename: "CODE-FEST-Certificate.png",
+          content: imageBuffer,
+          contentType: "image/png"
+        }
+      ]
+    });
+
+    return res.json({
+      success: true,
+      message: `Certificate sent to ${student.email}`
+    });
+
+  } catch (error) {
+    console.error("Certificate email error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to send the certificate. Please try again later."
+    });
+  }
+});
+
 
 /* ==============================
    START SERVER

@@ -150,6 +150,404 @@
       margin-bottom:12px;
     }
     #editModal h3 { color:#1e3c72; margin-top:0; }
+
+
+    /* =========================================
+   ✨ ADMIN DASHBOARD ANIMATIONS
+   Existing functionality unchanged
+   ========================================= */
+
+/* Page entrance */
+body {
+  animation: pageEnter 0.7s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* CODE FEST top header */
+.site-header {
+  animation: headerDrop 0.7s ease-out;
+}
+
+@keyframes headerDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Logo animation */
+.site-header .logo {
+  animation: logoPop 0.8s ease-out;
+  transition: transform 0.3s ease;
+}
+
+.site-header .logo:hover {
+  transform: scale(1.08) rotate(-2deg);
+}
+
+@keyframes logoPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  70% {
+    transform: scale(1.08) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* CODE FEST title */
+.site-header h1 {
+  animation: titleSlide 0.8s ease-out;
+}
+
+@keyframes titleSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Admin Dashboard header */
+body > header:not(.site-header) {
+  animation: adminHeader 0.8s ease-out;
+}
+
+@keyframes adminHeader {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Container */
+.container {
+  animation: containerReveal 0.8s ease-out;
+}
+
+@keyframes containerReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stats cards */
+.stat {
+  animation: statReveal 0.6s ease-out backwards;
+}
+
+.stat:nth-child(1) {
+  animation-delay: 0.15s;
+}
+
+.stat:nth-child(2) {
+  animation-delay: 0.25s;
+}
+
+.stat:nth-child(3) {
+  animation-delay: 0.35s;
+}
+
+@keyframes statReveal {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stat h3 {
+  transition: transform 0.3s ease;
+}
+
+.stat:hover h3 {
+  transform: scale(1.08);
+}
+
+/* Sections */
+section {
+  animation: sectionReveal 0.7s ease-out backwards;
+}
+
+section:nth-of-type(1) {
+  animation-delay: 0.25s;
+}
+
+section:nth-of-type(2) {
+  animation-delay: 0.4s;
+}
+
+@keyframes sectionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Section headings */
+section h2 {
+  transition: transform 0.3s ease, letter-spacing 0.3s ease;
+}
+
+section:hover h2 {
+  transform: translateX(4px);
+  letter-spacing: 0.3px;
+}
+
+/* Form inputs */
+.form-box input,
+.form-box textarea,
+.form-box select,
+.filters input,
+.filters select {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.form-box input:hover,
+.form-box textarea:hover,
+.form-box select:hover,
+.filters input:hover,
+.filters select:hover {
+  transform: translateY(-2px);
+}
+
+.form-box input:focus,
+.form-box textarea:focus,
+.form-box select:focus,
+.filters input:focus,
+.filters select:focus {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.12);
+}
+
+/* Main Add Course button */
+.form-box button {
+  position: relative;
+  overflow: hidden;
+}
+
+.form-box button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: rgba(255,255,255,0.2);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+}
+
+.form-box button:hover::after {
+  left: 130%;
+}
+
+.form-box button:active {
+  transform: scale(0.96);
+}
+
+/* Filter / Export button */
+.small-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.small-btn:active {
+  transform: scale(0.94);
+}
+
+/* Table entrance */
+table {
+  animation: tableReveal 0.7s ease-out;
+}
+
+@keyframes tableReveal {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Table rows */
+#courseTable tr {
+  transition:
+    background-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+#courseTable tr:hover {
+  transform: scale(1.005);
+}
+
+/* Table buttons */
+#courseTable .small-btn {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+#courseTable .small-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* Chart animation */
+canvas {
+  animation: chartReveal 0.9s ease-out;
+}
+
+@keyframes chartReveal {
+  from {
+    opacity: 0;
+    transform: scaleY(0.9);
+    transform-origin: bottom;
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* Edit modal */
+#editModal {
+  backdrop-filter: blur(4px);
+}
+
+#editModal .modal-content {
+  animation: modalPop 0.35s cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+#editModal input,
+#editModal textarea {
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+#editModal input:focus,
+#editModal textarea:focus {
+  outline: none;
+  border-color: #1e3c72;
+  box-shadow: 0 0 0 3px rgba(30,60,114,0.12);
+  transform: translateY(-2px);
+}
+
+/* Students modal */
+#studentsModal {
+  backdrop-filter: blur(4px);
+}
+
+#studentsModal > div {
+  animation: modalPop 0.35s cubic-bezier(.2,.8,.2,1);
+}
+
+/* Modal buttons */
+#editModal button,
+#studentsModal button {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+#editModal button:hover,
+#studentsModal button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+#editModal button:active,
+#studentsModal button:active {
+  transform: scale(0.95);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #eef2f7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e3c72;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a5298;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
   </style>
 </head>
 <body>
