@@ -393,90 +393,49 @@ function downloadCertificate() {
 
 async function shareCertificate() {
     try {
-        const cert = document.getElementById("certificate");
-
-        // Make sure certificate is visible
-        if (!cert || cert.style.display === "none") {
-            alert("Please generate your certificate first.");
-            return;
-        }
-
-        // Get logged-in student information
         const studentData =
-            JSON.parse(localStorage.getItem("user")) ||
-            JSON.parse(localStorage.getItem("loggedInUser"));
+            JSON.parse(localStorage.getItem("user") || "null") ||
+            JSON.parse(localStorage.getItem("loggedInUser") || "null");
 
         if (!studentData) {
             alert("Please log in again.");
             return;
         }
 
-        // Get student ID from login data
-        const studentId =
-            studentData.id ||
-            studentData._id ||
-            studentData.userId;
+        const email = studentData.email;
 
-        if (!studentId) {
-            alert("Student account information not found. Please log in again.");
+        if (!email) {
+            alert("Student email not found. Please log in again.");
+            console.log("Student data:", studentData);
             return;
         }
 
-        // Get certificate details
         const courseName =
             document.getElementById("certCourse")?.innerText ||
             "CODE FEST Course";
 
-        const score =
-            parseInt(localStorage.getItem("quizScore") || "0", 10);
-
-        const total =
-            parseInt(localStorage.getItem("quizTotal") || "0", 10);
-
-        // Generate certificate as PNG
-        const canvas = await html2canvas(cert, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: "#ffffff"
-        });
-
-        const certificateImage = canvas.toDataURL("image/png");
-
-        // Send certificate to backend
-        const response = await fetch("/api/certificate/send-email", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                studentId: studentId,
-                certificateImage: certificateImage,
-                courseName: courseName,
-                score: score,
-                total: total
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                data.message || "Unable to send certificate."
-            );
-        }
-
-        alert(
-            data.message ||
-            "🎉 Certificate sent successfully to your registered email!"
+        const subject = encodeURIComponent(
+            "My CODE FEST Certificate - " + courseName
         );
+
+        const body = encodeURIComponent(
+            "Hi,\n\nPlease find my certificate for " +
+            courseName +
+            ".\n\nRegards,\n" +
+            (studentData.fullname || studentData.username || "Student")
+        );
+
+        const gmailURL =
+            "https://mail.google.com/mail/?view=cm&fs=1" +
+            "&to=" + encodeURIComponent(email) +
+            "&su=" + subject +
+            "&body=" + body;
+
+        window.open(gmailURL, "_blank");
 
     } catch (error) {
-        console.error("Certificate email error:", error);
-
-        alert(
-            "❌ Certificate could not be sent.\n\n" +
-            (error.message || "Please try again.")
-        );
+        console.error(error);
+        alert("Unable to open Gmail.");
     }
 }
 

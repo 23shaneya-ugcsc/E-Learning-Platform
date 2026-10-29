@@ -9,7 +9,7 @@
     "mongodb": "^6.19.0",
     "mongoose": "^8.18.1",
     "multer": "^2.0.2",
-    "nodemailer": "^10.1.7",
+    "nodemailer": "^10.3.0",
     "router": "^2.2.0"
   },
   "name": "backend",
