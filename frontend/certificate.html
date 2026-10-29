@@ -391,30 +391,95 @@ function downloadCertificate() {
   });
 }
 
+async function shareCertificate() {
+    try {
+        const cert = document.getElementById("certificate");
 
-  function shareCertificate() {
-  const cert = document.getElementById("certificate");
+        // Make sure certificate is visible
+        if (!cert || cert.style.display === "none") {
+            alert("Please generate your certificate first.");
+            return;
+        }
 
-  html2canvas(cert, { scale: 2 }).then(canvas => {
-      const imageData = canvas.toDataURL("image/png");
+        // Get logged-in student information
+        const studentData =
+            JSON.parse(localStorage.getItem("user")) ||
+            JSON.parse(localStorage.getItem("loggedInUser"));
 
-      // Open Gmail with pre-filled email
-      const subject = encodeURIComponent("My CODE FEST Certificate");
-      const body = encodeURIComponent("Hi,\n\nPlease find my certificate attached below.\n\n");
-      
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
+        if (!studentData) {
+            alert("Please log in again.");
+            return;
+        }
 
-      // Open Gmail compose
-      window.open(gmailUrl, "_blank");
+        // Get student ID from login data
+        const studentId =
+            studentData.id ||
+            studentData._id ||
+            studentData.userId;
 
-      // Copy certificate image automatically to clipboard
-      canvas.toBlob(blob => {
-          const item = new ClipboardItem({ "image/png": blob });
-          navigator.clipboard.write([item]);
-          alert("📎 Your certificate is copied! Press Ctrl+V inside Gmail.");
-      });
-  });
+        if (!studentId) {
+            alert("Student account information not found. Please log in again.");
+            return;
+        }
+
+        // Get certificate details
+        const courseName =
+            document.getElementById("certCourse")?.innerText ||
+            "CODE FEST Course";
+
+        const score =
+            parseInt(localStorage.getItem("quizScore") || "0", 10);
+
+        const total =
+            parseInt(localStorage.getItem("quizTotal") || "0", 10);
+
+        // Generate certificate as PNG
+        const canvas = await html2canvas(cert, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        });
+
+        const certificateImage = canvas.toDataURL("image/png");
+
+        // Send certificate to backend
+        const response = await fetch("/api/certificate/send-email", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                studentId: studentId,
+                certificateImage: certificateImage,
+                courseName: courseName,
+                score: score,
+                total: total
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message || "Unable to send certificate."
+            );
+        }
+
+        alert(
+            data.message ||
+            "🎉 Certificate sent successfully to your registered email!"
+        );
+
+    } catch (error) {
+        console.error("Certificate email error:", error);
+
+        alert(
+            "❌ Certificate could not be sent.\n\n" +
+            (error.message || "Please try again.")
+        );
+    }
 }
+
 
   // Auto-generate on page load
   window.onload = generateCertificate;
