@@ -284,7 +284,7 @@ if (localStorage.getItem("selectedCourseName")) {
 
 // Optional: fetch course name from backend using courseId if you want 100% correct
 if (courseId) {
-    fetch(`http://localhost:5000/api/courses/${courseId}`)
+    fetch(`https://e-learning-platform-v5u2.onrender.com/api/courses/${courseId}`)
         .then(res => res.json())
         .then(data => {
             courseName = data.title || data.courseName || courseName;

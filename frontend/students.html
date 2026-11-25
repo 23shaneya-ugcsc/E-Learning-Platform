@@ -70,7 +70,7 @@
 
   <script>
     async function fetchStudents() {
-      const res = await fetch("http://localhost:5000/api/students");
+      const res = await fetch("https://e-learning-platform-v5u2.onrender.com/api/students");
       const students = await res.json();
       const table = document.getElementById("studentsTable");
       table.innerHTML = "";
@@ -95,12 +95,12 @@
 
     async function removeStudent(id) {
       if (!confirm("Are you sure you want to remove this student?")) return;
-      await fetch(`http://localhost:5000/api/students/${id}`, { method: "DELETE" });
+      await fetch(`https://e-learning-platform-v5u2.onrender.com/api/students/${id}`, { method: "DELETE" });
       fetchStudents();
     }
 
     async function activateStudent(id) {
-      await fetch(`http://localhost:5000/api/students/${id}/activate`, { method: "PUT" });
+      await fetch(`https://e-learning-platform-v5u2.onrender.com/api/students/${id}/activate`, { method: "PUT" });
       fetchStudents();
     }
 

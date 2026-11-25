@@ -228,7 +228,7 @@ if (!studentId) {
 
 async function loadProfile() {
   try {
-    const res = await fetch(`http://localhost:5000/api/students/${studentId}`);
+    const res = await fetch(`https://e-learning-platform-v5u2.onrender.com/api/students/${studentId}`);
     const student = await res.json();
 
     // Fill form data
@@ -306,7 +306,7 @@ document.querySelectorAll('.certificate-link').forEach(item => {
             // 🛑 இங்கேதான் Score மற்றும் Total-ஐப் பெற வேண்டும் (உங்கள் Backend API-ஐப் பயன்படுத்தவும்)
             try {
                 // உதாரண API Call:
-                const scoreRes = await fetch(`http://localhost:5000/api/scores/${studentId}/${courseId}`);
+                const scoreRes = await fetch(`https://e-learning-platform-v5u2.onrender.com/api/scores/${studentId}/${courseId}`);
                 const scoreData = await scoreRes.json();
                 
                 // பெற்ற Data-வை localStorage-ல் செட் செய்யுங்கள்:
@@ -341,7 +341,7 @@ document.getElementById("profileForm").addEventListener("submit", async (e) => {
     phone: document.getElementById("phone").value
   };
 
-  const res = await fetch(`http://localhost:5000/api/user/${studentId}`, {
+  const res = await fetch(`https://e-learning-platform-v5u2.onrender.com/api/user/${studentId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updated)

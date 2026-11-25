@@ -90,7 +90,7 @@
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/enrollments/${encodeURIComponent(identifier)}`);
+      const res = await fetch(`https://e-learning-platform-v5u2.onrender.com/api/enrollments/${encodeURIComponent(identifier)}`);
       if (!res.ok) throw new Error("Server returned " + res.status);
       const enrollments = await res.json();
 

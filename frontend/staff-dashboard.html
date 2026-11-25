@@ -1734,7 +1734,7 @@ to {
 </div>
 
 <script>
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://e-learning-platform-v5u2.onrender.com/api";
 let chart = null;
 let currentEditId = null;
 let courses = [];
@@ -1875,7 +1875,7 @@ if (!teacher) {
     card.innerHTML = `
       <div class="course-header">
         <div>
-          ${course.image ? `<img src="http://localhost:5000${course.image}" alt="${escapeHtml(course.title)}" class="course-image">` : ""}
+          ${course.image ? `<img src="https://e-learning-platform-v5u2.onrender.com${course.image}" alt="${escapeHtml(course.title)}" class="course-image">` : ""}
           <div class="course-title">${escapeHtml(course.title || "Untitled")}</div>
           <div class="course-sub">${escapeHtml(course.description ? (course.description.substring(0,70) + (course.description.length>70?'...':'') ) : "No description")}</div>
           <div class="course-sub"><strong>Duration:</strong> ${escapeHtml(course.duration || "—")}<br><strong>Topics:</strong> ${escapeHtml(course.topics || "—")}</div>

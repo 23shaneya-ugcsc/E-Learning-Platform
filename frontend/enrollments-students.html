@@ -13,7 +13,7 @@
 <header><h1>Enrolled Students</h1></header>
 <div id="enrollmentsContainer"></div>
 <script>
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://e-learning-platform-v5u2.onrender.com/api";
 async function loadEnrollments() {
   const [coursesRes, enrollmentsRes] = await Promise.all([
     fetch(`${API_BASE}/courses`),

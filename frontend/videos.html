@@ -340,7 +340,7 @@ body {
 </div> -->
 
 <script>
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://e-learning-platform-v5u2.onrender.com/api";
 const courseId = new URLSearchParams(window.location.search).get("course");
 const studentId = localStorage.getItem("studentId");
 
@@ -373,7 +373,7 @@ async function loadCourse() {
         <div class="card">
           <div class="card-content">
             <h3>${v.title}</h3>
-            <video controls src="http://localhost:5000${v.url}"></video>
+            <video controls src="https://e-learning-platform-v5u2.onrender.com${v.url}"></video>
             <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
           </div>
         </div>`).join("") :
@@ -385,7 +385,7 @@ async function loadCourse() {
         <div class="card">
           <div class="card-content">
             <h3>${p.filename}</h3>
-            <a class="download-link" target="_blank" href="http://localhost:5000${p.url}">Download PPT</a>
+            <a class="download-link" target="_blank" href="https://e-learning-platform-v5u2.onrender.com${p.url}">Download PPT</a>
           </div>
         </div>`).join("") :
       "<p>No PPT files.</p>";

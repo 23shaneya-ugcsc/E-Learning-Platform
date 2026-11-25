@@ -37,7 +37,7 @@
   const params = new URLSearchParams(window.location.search);
   const courseId = params.get("id");
   try {
-    const res = await fetch(`http://localhost:5000/api/courses/${courseId}`);
+    const res = await fetch(`https://e-learning-platform-v5u2.onrender.com/api/courses/${courseId}`);
     const course = await res.json();
     
     document.getElementById("courseTitle").innerText = course.title;
