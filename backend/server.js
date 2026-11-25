@@ -1194,6 +1194,8 @@ app.post("/api/certificate/send-email", async (req, res) => {
 /* ==============================
    START SERVER
 ================================*/
-app.listen(5000, () => {
-  console.log("🚀 Server running on https://e-learning-platform-v5u2.onrender.com");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
