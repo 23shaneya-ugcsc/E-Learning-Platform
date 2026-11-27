@@ -897,6 +897,78 @@
       }
     }
 
+
+/* =========================
+   COURSE DETAILS MODAL
+========================= */
+
+.course-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.course-modal.active {
+  display: flex;
+}
+
+.course-modal-content {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 16px;
+  position: relative;
+  box-shadow: 0 15px 45px rgba(0,0,0,0.2);
+  animation: modalOpen 0.3s ease;
+}
+
+@keyframes modalOpen {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.course-modal-content h2 {
+  color: #1e3c72;
+  margin-top: 0;
+}
+
+.course-modal-content p {
+  color: #555;
+  line-height: 1.7;
+}
+
+.course-modal-content .duration {
+  background: #eef3ff;
+  padding: 12px;
+  border-radius: 8px;
+  color: #1e3c72;
+  font-weight: 600;
+}
+
+.close-modal {
+  position: absolute;
+  right: 15px;
+  top: 12px;
+  border: none;
+  background: none;
+  font-size: 25px;
+  cursor: pointer;
+  color: #555;
+}
+
+
   </style>
 </head>
 
@@ -1303,6 +1375,25 @@
       </a>
     </p>
 
+
+<!-- COURSE DETAILS MODAL -->
+
+<div class="course-modal" id="courseModal">
+  <div class="course-modal-content">
+
+    <button class="close-modal" onclick="closeCourseModal()">×</button>
+
+    <h2 id="modalCourseTitle">Course Name</h2>
+
+    <p class="duration">
+      Duration: <span id="modalCourseDuration"></span>
+    </p>
+
+    <p id="modalCourseDescription"></p>
+
+  </div>
+</div>
+
   </footer>
 
 
@@ -1360,70 +1451,61 @@
        KEPT AS IT IS
     ========================== */
 
-    async function loadCourses() {
+    
+async function loadCourses() {
+  try {
+    const res = await fetch(
+      "https://e-learning-platform-v5u2.onrender.com/api/courses"
+    );
 
-      try {
-
-        const res =
-          await fetch("https://e-learning-platform-v5u2.onrender.com/api/courses");
-
-        const courses =
-          await res.json();
-
-        const container =
-          document.getElementById("courseContainer");
-
-        container.innerHTML = "";
-
-        courses.forEach(course => {
-
-          const card =
-            document.createElement("div");
-
-          card.className = "card";
-
-          card.innerHTML = `
-
-            <img
-              src="${course.image}"
-              alt="${course.title}"
-              style="
-                width:100%;
-                height:150px;
-                object-fit:cover;
-                border-radius:8px;
-              "
-            />
-
-            <h3>${course.title}</h3>
-
-            <p>${course.description}</p>
-
-            <button
-              onclick="viewCourse('${course._id}')">
-
-              View Details
-
-            </button>
-
-          `;
-
-          container.appendChild(card);
-
-        });
-
-      }
-
-      catch (err) {
-
-        console.error(
-          "Error loading courses:",
-          err
-        );
-
-      }
-
+    if (!res.ok) {
+      throw new Error("Unable to load courses");
     }
+
+    const courses = await res.json();
+    const container = document.getElementById("courseContainer");
+
+    container.innerHTML = "";
+
+    courses.forEach(course => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const image = document.createElement("img");
+      image.src = course.image || "images/default-course.png";
+      image.alt = course.title || "Course";
+      image.style.cssText =
+        "width:100%;height:150px;object-fit:cover;border-radius:8px;";
+
+      const title = document.createElement("h3");
+      title.textContent = course.title || "Untitled Course";
+
+      const description = document.createElement("p");
+      description.textContent =
+        course.description || "No description available.";
+
+      const detailsBtn = document.createElement("button");
+      detailsBtn.textContent = "View Details";
+      detailsBtn.onclick = () => viewCourse(course);
+
+      const enrollBtn = document.createElement("button");
+      enrollBtn.textContent = "Enroll Now";
+      enrollBtn.style.marginLeft = "10px";
+      enrollBtn.onclick = () => enrollCourse(course._id);
+
+      card.appendChild(image);
+      card.appendChild(title);
+      card.appendChild(description);
+      card.appendChild(detailsBtn);
+      card.appendChild(enrollBtn);
+
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Error loading courses:", err);
+  }
+}
 
 
     /* =========================
@@ -1462,29 +1544,46 @@
        EXISTING VIEW COURSE
     ========================== */
 
-    function viewCourse(courseId) {
+    
+/* VIEW COURSE DETAILS */
 
-      const isLoggedIn =
-        localStorage.getItem("user");
+function viewCourse(course) {
+  document.getElementById("modalCourseTitle").textContent =
+    course.title || "Course Details";
 
-      if (!isLoggedIn) {
+  document.getElementById("modalCourseDuration").textContent =
+    course.duration || "Not specified";
 
-        alert(
-          "Please login or register to view course details."
-        );
+  document.getElementById("modalCourseDescription").textContent =
+    course.description || "No description available.";
 
-        location.href = "login.html";
+  document.getElementById("courseModal").classList.add("active");
+}
 
-      }
+/* CLOSE COURSE DETAILS */
 
-      else {
+function closeCourseModal() {
+  document.getElementById("courseModal").classList.remove("active");
+}
 
-        location.href =
-          `course-details.html?id=${courseId}`;
+/* ENROLL COURSE */
 
-      }
+function enrollCourse(courseId) {
+  const isLoggedIn = localStorage.getItem("user");
 
-    }
+  if (!isLoggedIn) {
+    alert("Please login first to enroll in this course.");
+    localStorage.setItem("selectedCourseId", courseId);
+    window.location.href = "login.html";
+    return;
+  }
+
+  localStorage.setItem("selectedCourseId", courseId);
+
+  window.location.href =
+    `enroll.html?courseId=${encodeURIComponent(courseId)}`;
+}
+
 
 
     /* =========================
