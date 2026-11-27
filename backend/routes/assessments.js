@@ -63,24 +63,97 @@ router.get("/staff/:staffId", async (req, res) => {
 /* ------------------ STUDENT SIDE ------------------ */
 
 // ✅ Get latest assessment for a course (for students)
+
 router.get("/student/:courseId", async (req, res) => {
   try {
     const { courseId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({ success: false, message: "Invalid Course ID format." });
+    const { studentId } = req.query;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(courseId) ||
+      !mongoose.Types.ObjectId.isValid(studentId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Course ID or Student ID"
+      });
     }
 
-    const assessment = await Assessment.findOne({ courseId: new mongoose.Types.ObjectId(courseId) }).sort({ createdAt: -1 });
+    const student = await User.findById(studentId);
+
+    if (!student || student.role !== "student") {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
+    }
+
+    const enrollment = await Enrollment.findOne({
+      userId: studentId,
+      courseId: courseId
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({
+        success: false,
+        message: "Please enroll in this course first"
+      });
+    }
+
+    const totalVideos = course.videos.length;
+
+    const progress = student.videoProgress.find(
+      p => String(p.courseId) === String(courseId)
+    );
+
+    const courseVideoIds = new Set(
+      course.videos.map(video => String(video._id))
+    );
+
+    const watchedVideoIds = new Set(
+      (progress?.watchedVideos || [])
+        .map(id => String(id))
+        .filter(id => courseVideoIds.has(id))
+    );
+
+    const completedVideos = watchedVideoIds.size;
+
+    const progressPercentage = totalVideos > 0
+      ? (completedVideos / totalVideos) * 100
+      : 0;
+
+    if (progressPercentage <= 90) {
+      return res.status(403).json({
+        success: false,
+        locked: true,
+        message: "Complete more than 90% of the course videos to unlock the assessment",
+        progressPercentage
+      });
+    }
+
+    const assessment = await Assessment.findOne({
+      courseId: courseId
+    }).sort({ createdAt: -1 });
 
     if (!assessment) {
-      return res.json({ success: false, message: "No assessment found for this course." });
+      return res.json({
+        success: false,
+        message: "No assessment found for this course."
+      });
     }
 
-    // Map questions to include a clear numeric correct index
     const questionsWithAnswerIndex = assessment.questions.map(q => ({
       question: q.question,
-      options: q.options,
-      answer: q.answer  // numeric index 0-3
+      options: q.options
     }));
 
     res.json({
@@ -89,11 +162,17 @@ router.get("/student/:courseId", async (req, res) => {
       title: assessment.title,
       questions: questionsWithAnswerIndex
     });
+
   } catch (err) {
     console.error("Error fetching student assessment:", err);
-    res.status(500).json({ success: false, error: err.message });
+
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 });
+
 
 
 /* ------------------ ADMIN SIDE ------------------ */

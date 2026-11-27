@@ -247,19 +247,24 @@ async function loadProfile() {
     completedList.innerHTML = "";
 
     // 1. Enrolled Courses-ஐ மட்டும் Display செய்வது
-    if (student.enrolledCourses?.length > 0) {
+    // 1. Display Enrolled Courses
+if (student.enrolledCourses?.length > 0) {
     student.enrolledCourses.forEach(c => {
         const li = document.createElement("li");
-        const courseId = c.id || c._id || c.courseId; 
-        
-        li.setAttribute('data-course-id', courseId); 
-        li.textContent = c.courseTitle || c.title || c.name || "Title Missing";
-        li.classList.add('course-link');
-        
-        enrolledList.appendChild(li);
+        const courseId = c._id || c.id || c.courseId;
+
+        li.setAttribute("data-course-id", courseId);
+        li.textContent = c.title || c.courseTitle || c.name || "Title Missing";
+
+        if (c.status === "completed") {
+            li.classList.add("certificate-link");
+            completedList.appendChild(li);
+        } else {
+            li.classList.add("course-link");
+            enrolledList.appendChild(li);
+        }
     });
 }
-
     // 2. Completed Courses-ஐ மட்டும் Display செய்வது (முழுவதுமாக நீக்கப்பட்டு விட்டது போல் உள்ளது)
     if (student.completedCourses?.length > 0) {
     student.completedCourses.forEach(c => {

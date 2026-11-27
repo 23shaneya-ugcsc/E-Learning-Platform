@@ -556,40 +556,126 @@ app.put("/api/user/:id", async (req, res) => {
 
 // Mark video as watched
 // Mark video as watched
+
 app.post("/api/user/:id/progress", async (req, res) => {
   try {
-    const studentId = req.params.id;
     const { courseId, videoId } = req.body;
+    const studentId = req.params.id;
 
+    // Validate IDs
+    if (
+      !mongoose.Types.ObjectId.isValid(studentId) ||
+      !mongoose.Types.ObjectId.isValid(courseId) ||
+      !mongoose.Types.ObjectId.isValid(videoId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid student, course or video ID"
+      });
+    }
+
+    // Find student
     const student = await User.findById(studentId);
-    if (!student) return res.status(404).json({ message: "Student not found" });
 
-    if (!student.videoProgress) student.videoProgress = [];
-
-    let courseProgress = student.videoProgress.find(p => p.courseId.toString() === courseId);
-    if (!courseProgress) {
-      courseProgress = { courseId, watchedVideos: [] };
-      student.videoProgress.push(courseProgress);
+    if (!student || student.role !== "student") {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
     }
 
-    if (!Array.isArray(courseProgress.watchedVideos)) {
-      courseProgress.watchedVideos = [];
-    }
-    if (!courseProgress.watchedVideos.includes(videoId)) {
-      courseProgress.watchedVideos.push(videoId);
-    }
-    
-    await student.save();
-
-    // Return updated progress count
+    // Find course
     const course = await Course.findById(courseId);
-    const completedVideos = courseProgress.watchedVideos.length;
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
+    }
+
+    // Check enrollment
+    const enrollment = await Enrollment.findOne({
+      userId: studentId,
+      courseId: courseId
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({
+        success: false,
+        message: "Please enroll in this course first"
+      });
+    }
+
+    // Check whether video belongs to this course
+    const videoExists = course.videos.some(
+      video => String(video._id) === String(videoId)
+    );
+
+    if (!videoExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Video not found in this course"
+      });
+    }
+
+    // Find or create course progress
+    let progress = student.videoProgress.find(
+      item => String(item.courseId) === String(courseId)
+    );
+
+    if (!progress) {
+      student.videoProgress.push({
+        courseId: courseId,
+        watched: false,
+        watchedVideos: []
+      });
+
+      progress = student.videoProgress[
+        student.videoProgress.length - 1
+      ];
+    }
+
+    // Add video only once
+    const alreadyWatched = progress.watchedVideos.some(
+      id => String(id) === String(videoId)
+    );
+
+    if (!alreadyWatched) {
+      progress.watchedVideos.push(videoId);
+    }
+
+    // Calculate progress percentage
     const totalVideos = course.videos.length;
 
-    res.json({ message: "Progress updated", completedVideos, totalVideos });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    const completedVideos = new Set(
+      progress.watchedVideos.map(id => String(id))
+    ).size;
+
+    const progressPercentage = totalVideos > 0
+      ? Math.round((completedVideos / totalVideos) * 100)
+      : 0;
+
+    const assessmentUnlocked = progressPercentage > 90;
+
+    await student.save();
+
+    return res.json({
+      success: true,
+      message: "Video progress updated",
+      completedVideos,
+      totalVideos,
+      progressPercentage,
+      assessmentUnlocked
+    });
+
+  } catch (error) {
+    console.error("Video progress error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update video progress"
+    });
   }
 });
 
@@ -619,24 +705,56 @@ app.get("/api/students/:id", async (req, res) => {
       }
   
       const enrollments = await Enrollment.find({ userId: studentId }).populate("courseId");
-      const enrolledCourses = enrollments.map(e => {
-        const course = e.courseId;
-        if (!course) return null;
-        const totalVideos = Array.isArray(course.videos) ? course.videos.length : 0;
-        const progress = Array.isArray(student.videoProgress)
-          ? student.videoProgress.find(p => p.courseId.toString() === course._id.toString())
-          : null;
-        const completedVideos = progress?.watchedVideos?.length || 0;
-        return {
-          _id: course._id.toString(),
-          title: course.title || "Untitled Course",
-          totalVideos,
-          completedVideos,
-          videos: course.videos || [],
-          pptFiles: course.pptFiles || []
-        };
-      }).filter(c => c !== null);
-  
+      
+const enrolledCourses = enrollments.map(e => {
+  const course = e.courseId;
+  if (!course) return null;
+
+  const totalVideos = Array.isArray(course.videos)
+    ? course.videos.length
+    : 0;
+
+  const progress = Array.isArray(student.videoProgress)
+    ? student.videoProgress.find(
+        p => String(p.courseId) === String(course._id)
+      )
+    : null;
+
+  // Count only unique video IDs belonging to this course
+  const courseVideoIds = new Set(
+    (course.videos || []).map(video => String(video._id))
+  );
+
+  const watchedVideoIds = new Set(
+    (progress?.watchedVideos || [])
+      .map(id => String(id))
+      .filter(id => courseVideoIds.has(id))
+  );
+
+  const completedVideos = watchedVideoIds.size;
+
+  const progressPercentage = totalVideos > 0
+    ? Math.round((completedVideos / totalVideos) * 100)
+    : 0;
+
+  const assessmentUnlocked = progressPercentage > 90;
+
+  return {
+    _id: course._id.toString(),
+    status: e.status || "enrolled",
+    title: course.title || "Untitled Course",
+    totalVideos,
+    completedVideos,
+    progressPercentage,
+    assessmentUnlocked,
+    videos: course.videos || [],
+    pptFiles: course.pptFiles || []
+  };
+}).filter(c => c !== null);
+const completedCourses = enrolledCourses.filter(
+  course => course.status === "completed"
+).length;
+
       res.json({
         _id: student._id.toString(),
         name: student.fullname || "", // ✅ This provides the name for the frontend
@@ -645,7 +763,8 @@ app.get("/api/students/:id", async (req, res) => {
         dob: student.dob || "",
         gender: student.gender || "",
         avatar: student.avatar || "",
-        enrolledCourses
+        enrolledCourses,
+        completedCourses
       });
   
     } catch (err) {
@@ -654,6 +773,159 @@ app.get("/api/students/:id", async (req, res) => {
       res.status(500).json({ message: "Server error", error: err.message });
     }
   });
+
+  // Get student's course assessment score
+app.get("/api/scores/:studentId/:courseId", async (req, res) => {
+  try {
+      const { studentId, courseId } = req.params;
+
+      if (
+          !mongoose.Types.ObjectId.isValid(studentId) ||
+          !mongoose.Types.ObjectId.isValid(courseId)
+      ) {
+          return res.status(400).json({
+              success: false,
+              message: "Invalid student or course ID"
+          });
+      }
+
+      const submission = await Pro.findOne({
+          userId: studentId,
+          courseId: courseId
+      })
+      .sort({ submittedAt: -1 })
+      .populate("assessmentId");
+
+      if (!submission || !submission.assessmentId) {
+          return res.status(404).json({
+              success: false,
+              message: "Assessment score not found"
+          });
+      }
+
+      const total = submission.assessmentId.questions.length;
+
+      res.json({
+          success: true,
+          score: submission.score,
+          total: total,
+          percentage: total > 0
+              ? Math.round((submission.score / total) * 100)
+              : 0
+      });
+
+  } catch (err) {
+      console.error("Score API error:", err);
+      res.status(500).json({
+          success: false,
+          message: "Unable to fetch assessment score"
+      });
+  }
+});
+
+
+app.post("/api/students/:id/complete-course", async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { courseId } = req.body;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(studentId) ||
+      !mongoose.Types.ObjectId.isValid(courseId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid student or course ID"
+      });
+    }
+
+    // Verify student
+    const student = await User.findById(studentId);
+
+    if (!student || student.role !== "student") {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
+
+    // Verify enrollment
+    const enrollment = await Enrollment.findOne({
+      userId: studentId,
+      courseId: courseId
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({
+        success: false,
+        message: "Student is not enrolled in this course"
+      });
+    }
+
+    // Find the student's saved assessment submission
+    const submission = await Pro.findOne({
+      userId: studentId,
+      courseId: courseId
+    })
+      .sort({ submittedAt: -1 })
+      .populate("assessmentId");
+
+    if (!submission || !submission.assessmentId) {
+      return res.status(403).json({
+        success: false,
+        message: "No valid assessment submission found"
+      });
+    }
+
+    const assessment = submission.assessmentId;
+
+    // Verify assessment belongs to this course
+    if (String(assessment.courseId) !== String(courseId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Assessment does not belong to this course"
+      });
+    }
+
+    const totalQuestions = assessment.questions.length;
+
+    const percentage = totalQuestions > 0
+      ? (submission.score / totalQuestions) * 100
+      : 0;
+
+    // Verify passing score (60%)
+    if (percentage < 60) {
+      return res.status(403).json({
+        success: false,
+        message: "You must score at least 60% to complete this course",
+        percentage
+      });
+    }
+
+    // Mark enrollment as completed
+    enrollment.status = "completed";
+    enrollment.completedAt = new Date();
+
+await enrollment.save();
+
+    return res.json({
+      success: true,
+      message: "Course completed successfully",
+      score: submission.score,
+      totalQuestions,
+      percentage: Number(percentage.toFixed(2))
+    });
+
+  } catch (error) {
+    console.error("Course completion error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to complete course"
+    });
+  }
+});
+
   
   /* ==============================
      ✅ GOAL 2: UPDATE STUDENT PROFILE (Edit My Profile)

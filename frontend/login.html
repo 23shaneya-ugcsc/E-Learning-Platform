@@ -209,6 +209,7 @@ localStorage.setItem("user", JSON.stringify({
   email: data.user.email,
   role: data.role
 }));
+console.log("User saved:", localStorage.getItem("user"));
 
 console.log("SAVED USER:", localStorage.getItem("user"));
 console.log("SAVED USERNAME:", localStorage.getItem("username"));

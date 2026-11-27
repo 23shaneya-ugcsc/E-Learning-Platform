@@ -261,106 +261,116 @@
   const PASS_PERCENTAGE = 60; // 60% Passing Mark
 
   async function generateCertificate() {
-      // Get logged-in student info
-      // 🛑 CHANGE 1: localStorage-ல் இருந்து student data-வை சரியாகப் பெறவும்
-      // நாம் பொதுவாக studentId அல்லது userId-ஐப் பயன்படுத்துவதால், இங்கே அதைச் சரிபார்க்கிறோம்.
-      const studentData = JSON.parse(localStorage.getItem("user")) || 
-                           JSON.parse(localStorage.getItem("loggedInUser")) || 
-                           { username: "Student Name Missing", fullName: "Student Name Missing", email: "missing@example.com" };
-      
-      const displayName = studentData.username || studentData.fullName; // ✅ username-ஐ காண்பிக்கிறோம்
-      
-      // Get course name (For better display)
-      // Get courseId from URL
-const courseId = new URLSearchParams(window.location.search).get("courseId");
+    try {
+        const API_BASE = "https://e-learning-platform-v5u2.onrender.com";
 
-// Default fallback
-let courseName = "Completed Course";
+        const studentData = JSON.parse(localStorage.getItem("user")) ||
+                            JSON.parse(localStorage.getItem("loggedInUser")) ||
+                            {};
 
-// Try to get from localStorage first
-if (localStorage.getItem("selectedCourseName")) {
-    courseName = localStorage.getItem("selectedCourseName");
+        const studentId = localStorage.getItem("studentId") ||
+                          studentData.id ||
+                          studentData._id;
+
+        const courseId = new URLSearchParams(window.location.search)
+                         .get("courseId");
+
+        const displayName = studentData.fullname ||
+                            studentData.fullName ||
+                            studentData.username ||
+                            "Student";
+
+        const certificateDiv = document.getElementById("certificate");
+        const actionsDiv = document.getElementById("actions");
+        const resultContainer = document.getElementById("resultContainer");
+
+        certificateDiv.style.display = "none";
+        actionsDiv.style.display = "none";
+        resultContainer.innerHTML = "";
+
+        // Validate student and course
+        if (!studentId || !courseId) {
+            resultContainer.innerHTML =
+                "<h2>Student or course information missing.</h2>";
+            return;
+        }
+
+        // Fetch latest assessment score from backend
+        const scoreRes = await fetch(
+            `${API_BASE}/api/scores/${studentId}/${courseId}`
+        );
+
+        const scoreData = await scoreRes.json();
+
+        if (!scoreRes.ok || !scoreData.success) {
+            resultContainer.innerHTML =
+                "<h2>Assessment score not found. Please complete the assessment first.</h2>";
+            return;
+        }
+
+        const score = Number(scoreData.score);
+        const total = Number(scoreData.total);
+        const percentage = Number(scoreData.percentage);
+
+        if (
+            !Number.isFinite(score) ||
+            !Number.isFinite(total) ||
+            total <= 0
+        ) {
+            resultContainer.innerHTML =
+                "<h2>Invalid assessment score.</h2>";
+            return;
+        }
+
+        // Fetch course name
+        const courseRes = await fetch(
+            `${API_BASE}/api/courses/${courseId}`
+        );
+
+        const courseData = await courseRes.json();
+
+        const courseName = courseData.title ||
+                           courseData.courseName ||
+                           localStorage.getItem("selectedCourseName") ||
+                           "Completed Course";
+
+        // Set certificate details
+        document.getElementById("certName").innerText = displayName;
+
+        document.getElementById("certCourse").innerText =
+            `For completion of: ${courseName}`;
+
+        document.getElementById("certScore").innerText =
+            `Assessment Score: ${score}/${total} (${percentage.toFixed(2)}%)`;
+
+        document.getElementById("certDate").innerText =
+            "Date: " + new Date().toLocaleDateString();
+
+        // Pass / Fail
+        if (percentage >= PASS_PERCENTAGE) {
+
+            certificateDiv.style.display = "block";
+            actionsDiv.style.display = "block";
+
+        } else {
+
+            resultContainer.innerHTML = `
+                <div style="max-width:600px;margin:40px auto;padding:30px;background:white;border:2px solid #e53935;border-radius:12px;">
+                    <h2 style="color:#e53935;">Assessment Failed!</h2>
+                    <p>You scored ${score}/${total} (${percentage.toFixed(2)}%).</p>
+                    <p>Passing score is ${PASS_PERCENTAGE}%.</p>
+                    <p>Please review the course material.</p>
+                </div>
+            `;
+        }
+
+    } catch (error) {
+        console.error("Certificate generation error:", error);
+
+        document.getElementById("resultContainer").innerHTML =
+            "<h2>Unable to generate certificate. Please try again.</h2>";
+    }
 }
-
-// Optional: fetch course name from backend using courseId if you want 100% correct
-if (courseId) {
-    fetch(`https://e-learning-platform-v5u2.onrender.com/api/courses/${courseId}`)
-        .then(res => res.json())
-        .then(data => {
-            courseName = data.title || data.courseName || courseName;
-            document.getElementById("certCourse").innerText = `For completion of: ${courseName}`;
-        })
-        .catch(err => {
-            console.error("Course fetch failed:", err);
-            document.getElementById("certCourse").innerText = `For completion of: ${courseName}`;
-        });
-} else {
-    document.getElementById("certCourse").innerText = `For completion of: ${courseName}`;
-}
-  // Course Name-ஐப் பெற ஒரு புது key
-
-      // Get score and total from submission
-      const score = parseInt(localStorage.getItem("quizScore") || 0); 
-      const total = parseInt(localStorage.getItem("quizTotal") || 1);
-      
-      const percentage = (score / total) * 100;
-      
-      const resultContainer = document.getElementById("resultContainer");
-      const certificateDiv = document.getElementById("certificate");
-      const actionsDiv = document.getElementById("actions");
-      
-      // Default State
-      certificateDiv.style.display = "none";
-      actionsDiv.style.display = "none";
-      resultContainer.innerHTML = ''; // Clear previous messages
-
-      // 🛑 CHANGE 2: Pass/Fail Logic
-      if (percentage >= PASS_PERCENTAGE) {
-          // ====================================
-          // PASS: Certificate Display Logic
-          // ====================================
-          
-          document.getElementById("certName").innerText = displayName; // ✅ Student Name Set
-          document.getElementById("certCourse").innerText = `For completion of: ${courseName}`;
-          document.getElementById("certScore").innerText = `for successfully passing the assessment with a score of ${score}/${total} (${percentage.toFixed(2)}%)`;
-          document.getElementById("certDate").innerText = "Date: " + new Date().toLocaleDateString();
-
-          certificateDiv.style.display = "block";
-          actionsDiv.style.display = "block";
-          
-      } else {
-          // ====================================
-          // FAIL: Repeat Assessment Logic
-          // ====================================
-          const courseId = new URLSearchParams(window.location.search).get("courseId"); // quiz.html-ல் இருந்து courseId வந்திருந்தால்
-
-          let repeatBtnHtml = '';
-          if (courseId) {
-               // student-assessment.html (or quiz.html)-க்கு மீண்டும் அனுப்பவும்
-              repeatBtnHtml = `<button onclick="window.location.href='quiz.html?courseId=${courseId}'" 
-                                  style="padding: 15px 30px; background: #e53935; color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer; margin-top: 20px;">
-                                  <i class="fas fa-redo"></i> Repeat Assessment
-                               </button>`;
-          }
-          
-          // Fail Message Display
-          resultContainer.innerHTML = `
-              <div style="max-width: 600px; margin: 40px auto; padding: 30px; background: #fff; border: 2px solid #e53935; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                  <h2 style="color: #e53935; margin-top: 0;">Assessment Failed!</h2>
-                  <p style="font-size: 1.1em;">You scored **${score}/${total}** (${percentage.toFixed(2)}%). The passing score is ${PASS_PERCENTAGE}%. </p>
-                  <p>Please review the course material and attempt the assessment again.</p>
-                  ${repeatBtnHtml}
-              </div>
-          `;
-          
-          // HTML Structure-ல் புதிய Container தேவை
-          if (!document.getElementById("resultContainer")) {
-              const newDiv = document.createElement("div");
-              newDiv.id = "resultContainer";
-              document.body.appendChild(newDiv);
-          }
-      }
-  }
 
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.clear();

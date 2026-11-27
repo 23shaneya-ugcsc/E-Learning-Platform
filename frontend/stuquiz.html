@@ -132,26 +132,33 @@
   </div>
 
 <script>
+
 const API_BASE = "https://e-learning-platform-v5u2.onrender.com/api";
+
 const urlParams = new URLSearchParams(window.location.search);
 const courseId = urlParams.get("courseId");
 const studentId = localStorage.getItem("studentId");
 
 if (!studentId || !courseId) {
-  alert("Missing required data. Redirecting...");
-  window.location.href = "student-dashboard.html";
-  throw new Error("Missing Student or Course ID.");
+  alert("Missing student or course information.");
+  window.location.href = "login.html";
+  throw new Error("Missing Student or Course ID");
 }
 
-let assessmentData = null, currentIndex = 0, selections = [], liveScore = 0, timer = null;
+let assessmentData = null;
+let currentIndex = 0;
+let selections = [];
+let timer = null;
+let isSubmitting = false;
+
 const questionTimeSec = 15;
+
 const quizDiv = document.getElementById("quiz");
 const assessmentTitle = document.getElementById("assessmentTitle");
 const progressText = document.getElementById("progressText");
 const progressBar = document.getElementById("progressBar");
 const timerBadge = document.getElementById("timerBadge");
 const timeEl = document.getElementById("time");
-const liveScoreEl = document.getElementById("liveScore");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const submitBtn = document.getElementById("submitBtn");
@@ -161,172 +168,327 @@ const certDiv = document.getElementById("certificate");
 const retakeDiv = document.getElementById("retakeSection");
 const certText = document.getElementById("certText");
 
-// 🧠 Fetch assessment questions
+// Hide live score because correct answers are not sent to frontend
+document.getElementById("scoreBadge").style.display = "none";
+
+/* ---------------- FETCH QUESTIONS ---------------- */
+
 async function fetchQuestions() {
   try {
-    const res = await fetch(`${API_BASE}/assessments/student/${courseId}`);
+    const res = await fetch(
+      `${API_BASE}/assessments/student/${courseId}?studentId=${encodeURIComponent(studentId)}`
+    );
+
     const data = await res.json();
-    if (!data.success || !data.questions?.length) {
-      quizDiv.innerHTML = `<div style="color:red;text-align:center;">${data.message || 'Assessment not found.'}</div>`;
+
+    if (!res.ok || !data.success || !data.questions?.length) {
+      quizDiv.textContent =
+        data.message || "Assessment is locked or unavailable.";
+
+      controls.style.display = "none";
+      timerBadge.style.display = "none";
       return;
     }
+
     assessmentData = data;
     selections = new Array(data.questions.length).fill(null);
+
     assessmentTitle.textContent = data.title || "Assessment";
+
     renderQuestion(0);
+
     controls.style.display = "flex";
     submitBtn.disabled = false;
-  } catch {
-    quizDiv.innerHTML = `<div style="color:red;text-align:center;">Unable to load questions.</div>`;
+
+  } catch (err) {
+    console.error("Assessment loading error:", err);
+    quizDiv.textContent = "Unable to load assessment. Please try again.";
   }
 }
 
-// 🧩 Render Question
+/* ---------------- RENDER QUESTION ---------------- */
+
 function renderQuestion(index) {
   clearTimer();
+
   const q = assessmentData.questions[index];
+
   timerBadge.style.display = "inline-block";
-  timeEl.innerText = questionTimeSec;
-  const opts = q.options.map((opt, i) =>
-    `<button class="option-btn" data-idx="${i}" onclick="onSelectOption(${index},${i})">${opt}</button>`
-  ).join("");
-  quizDiv.innerHTML = `<div class="question">Q${index+1}: ${q.question}</div><div class="options">${opts}</div>`;
-  if (selections[index] !== null) markPreviousSelection(q, selections[index]);
-  startTimer(questionTimeSec, () => onTimeUp(index));
+  timeEl.textContent = questionTimeSec;
+
+  const opts = q.options.map((opt, i) => `
+    <button
+      class="option-btn"
+      data-idx="${i}"
+      onclick="onSelectOption(${index}, ${i})"
+      ${selections[index] !== null ? "disabled" : ""}
+    >${opt}</button>
+  `).join("");
+
+  quizDiv.innerHTML = `
+    <div class="question">Q${index + 1}: ${q.question}</div>
+    <div class="options">${opts}</div>
+  `;
+
+  if (selections[index] !== null) {
+    document.querySelectorAll(".option-btn").forEach(btn => {
+      if (Number(btn.dataset.idx) === selections[index]) {
+        btn.classList.add("correct");
+      }
+    });
+  }
+
   updateProgress();
+  updateNavigation();
+
+  if (selections[index] === null) {
+    startTimer(questionTimeSec, () => onTimeUp(index));
+  }
 }
 
-// Restore answered question visual
-function markPreviousSelection(q, selIdx) {
-  const buttons = document.querySelectorAll('.option-btn');
-  const correctIndex = getCorrectIndex(q);
-  buttons.forEach(btn=>{
-    btn.disabled=true;
-    const idx = Number(btn.dataset.idx);
-    if (idx===correctIndex) btn.classList.add('correct');
-    if (idx===selIdx && selIdx!==correctIndex) btn.classList.add('wrong');
-  });
+/* ---------------- TIMER ---------------- */
+
+function startTimer(seconds, onEnd) {
+  let remain = seconds;
+
+  timeEl.textContent = remain;
+
+  timer = setInterval(() => {
+    remain--;
+    timeEl.textContent = remain;
+
+    if (remain <= 0) {
+      clearTimer();
+      onEnd();
+    }
+  }, 1000);
 }
 
-// Timer handling
-function startTimer(sec,onEnd){let remain=sec;timeEl.textContent=remain;
-  timer=setInterval(()=>{remain--;timeEl.textContent=remain;if(remain<=0){clearTimer();onEnd();}},1000);}
-function clearTimer(){if(timer){clearInterval(timer);timer=null;}}
-
-function getCorrectIndex(q){
-  if (q.correctIndex !== undefined) return q.correctIndex;
-  if (q.answerIndex !== undefined) return q.answerIndex;
-  if (q.answer !== undefined) return q.answer; // <-- Fix here
-  return -1;
+function clearTimer() {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
 }
 
+/* ---------------- SELECT OPTION ---------------- */
 
-// When selecting
-window.onSelectOption=function(qIdx,optIdx){
-  const q=assessmentData.questions[qIdx];
-  const correctIndex=getCorrectIndex(q);
-  const buttons=document.querySelectorAll('.option-btn');
-  if(selections[qIdx]!==null)return;
-  selections[qIdx]=optIdx;
-  buttons.forEach(btn=>btn.disabled=true);
-  buttons.forEach(btn=>{
-    const idx=Number(btn.dataset.idx);
-    if(idx===correctIndex)btn.classList.add('correct');
-    if(idx===optIdx && optIdx!==correctIndex)btn.classList.add('wrong');
-  });
-  if(optIdx===correctIndex){liveScore++;liveScoreEl.textContent=liveScore;}
+window.onSelectOption = function(qIdx, optIdx) {
+  if (isSubmitting || selections[qIdx] !== null) return;
+
+  selections[qIdx] = optIdx;
+
   clearTimer();
-  setTimeout(()=>{if(currentIndex<assessmentData.questions.length-1)goToQuestion(currentIndex+1);},700);
+
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    btn.disabled = true;
+
+    if (Number(btn.dataset.idx) === optIdx) {
+      btn.classList.add("correct");
+    }
+  });
+
+  updateNavigation();
+
+  setTimeout(() => {
+    if (currentIndex < assessmentData.questions.length - 1) {
+      goToQuestion(currentIndex + 1);
+    }
+  }, 500);
 };
 
-// Time Up
-function onTimeUp(qIdx){
-  const q=assessmentData.questions[qIdx];
-  const correctIndex=getCorrectIndex(q);
-  const btns=document.querySelectorAll('.option-btn');
-  btns.forEach(b=>{b.disabled=true;if(Number(b.dataset.idx)===correctIndex)b.classList.add('correct');});
-  setTimeout(()=>{if(currentIndex<assessmentData.questions.length-1)goToQuestion(currentIndex+1);},800);
+/* ---------------- TIME UP ---------------- */
+
+function onTimeUp(qIdx) {
+  if (selections[qIdx] !== null) return;
+
+  // -1 means unanswered
+  selections[qIdx] = -1;
+
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    btn.disabled = true;
+  });
+
+  updateNavigation();
+
+  setTimeout(() => {
+    if (currentIndex < assessmentData.questions.length - 1) {
+      goToQuestion(currentIndex + 1);
+    }
+  }, 500);
 }
 
-function goToQuestion(idx){if(idx<0||idx>=assessmentData.questions.length)return;currentIndex=idx;renderQuestion(idx);}
-prevBtn.onclick=()=>{if(currentIndex>0)goToQuestion(currentIndex-1);}
-nextBtn.onclick=()=>{if(currentIndex<assessmentData.questions.length-1)goToQuestion(currentIndex+1);}
+/* ---------------- NAVIGATION ---------------- */
 
-function updateProgress(){
-  const total=assessmentData.questions.length;
-  progressText.textContent=`Q${currentIndex+1} / Q${total}`;
-  progressBar.style.width=`${(currentIndex/total)*100}%`;
-  liveScoreEl.textContent=liveScore;
+function goToQuestion(index) {
+  if (index < 0 || index >= assessmentData.questions.length) return;
+
+  currentIndex = index;
+  renderQuestion(index);
 }
 
-// Submit
-submitBtn.onclick=async()=>{
-  const unanswered=selections.some(s=>s===null);
-  if(unanswered&&!confirm("Some questions are unanswered. Submit anyway?"))return;
-  submitBtn.disabled=true;submitBtn.textContent="Submitting...";
-  try{
-    const res=await fetch(`${API_BASE}/submissions`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({studentId,courseId,assessmentId:assessmentData._id,answers:selections.map(v=>v??-1)})
-    });
-    const data=await res.json();
-    document.getElementById('quiz').style.display='none';
-    controls.style.display='none';
-    const total=assessmentData.questions.length;
-    const score=data.success?data.score:liveScore;
-    const percent=(score/total)*100;
-    resultsDiv.innerHTML=`<div class="alert-success">✅ Assessment Submitted!<br><strong>Your Score: ${score} / ${total}</strong> (${percent.toFixed(2)}%)</div>`;
-    if (percent >= 60) {
-  certDiv.style.display = 'block';
-  certText.textContent = `You passed with ${percent.toFixed(2)}%!`;
-  
-  localStorage.setItem("quizScore", score);
-  localStorage.setItem("quizTotal", total);
+prevBtn.onclick = () => {
+  if (currentIndex > 0) {
+    goToQuestion(currentIndex - 1);
+  }
+};
 
-  // ⭐ Save completed course to database
+nextBtn.onclick = () => {
+  if (currentIndex < assessmentData.questions.length - 1) {
+    goToQuestion(currentIndex + 1);
+  }
+};
+
+function updateNavigation() {
+  prevBtn.disabled = currentIndex === 0;
+
+  nextBtn.disabled =
+    currentIndex === assessmentData.questions.length - 1;
+}
+
+/* ---------------- PROGRESS ---------------- */
+
+function updateProgress() {
+  const total = assessmentData.questions.length;
+
+  progressText.textContent = `Q${currentIndex + 1} / Q${total}`;
+
+  progressBar.style.width =
+    `${((currentIndex + 1) / total) * 100}%`;
+}
+
+/* ---------------- SUBMIT ASSESSMENT ---------------- */
+
+submitBtn.onclick = async () => {
+  if (isSubmitting) return;
+
+  const unanswered = selections.some(
+    answer => answer === null
+  );
+
+  if (
+    unanswered &&
+    !confirm("Some questions are unanswered. Submit anyway?")
+  ) {
+    return;
+  }
+
+  isSubmitting = true;
+  clearTimer();
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Submitting...";
+
   try {
-    await fetch(`${API_BASE}/students/${studentId}/complete-course`, {
+    const res = await fetch(`${API_BASE}/submissions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        courseId: courseId,
-        courseName: assessmentData.title
+        studentId,
+        courseId,
+        assessmentId: assessmentData._id,
+        answers: selections.map(value => value === null ? -1 : value)
       })
     });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || data.error || "Assessment submission failed"
+      );
+    }
+
+    const total = assessmentData.questions.length;
+    const score = data.score;
+    const percent = (score / total) * 100;
+
+    quizDiv.style.display = "none";
+    controls.style.display = "none";
+    timerBadge.style.display = "none";
+
+    resultsDiv.innerHTML = `
+      <div class="alert-success">
+        ✅ Assessment Submitted Successfully!
+        <br>
+        <strong>Your Score: ${score} / ${total}</strong>
+        (${percent.toFixed(2)}%)
+      </div>
+    `;
+
+    localStorage.setItem("quizScore", score);
+    localStorage.setItem("quizTotal", total);
+
+    if (percent >= 60) {
+      certDiv.style.display = "block";
+      certText.textContent =
+        `You passed with ${percent.toFixed(2)}%!`;
+
+      // Save completed course
+      try {
+        const completionRes = await fetch(
+          `${API_BASE}/students/${studentId}/complete-course`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              courseId,
+              courseName: assessmentData.title
+            })
+          }
+        );
+
+        if (!completionRes.ok) {
+          console.error("Course completion was not saved.");
+        }
+
+      } catch (err) {
+        console.error("Course completion error:", err);
+      }
+
+    } else {
+      retakeDiv.style.display = "block";
+    }
+
   } catch (err) {
-    console.error("Failed to save completed course:", err);
+    console.error("Submission error:", err);
+
+    resultsDiv.innerHTML = `
+      <div class="alert-error">
+        ❌ ${err.message}
+      </div>
+    `;
+
+    submitBtn.disabled = false;
+
+  } finally {
+    isSubmitting = false;
+    submitBtn.textContent = "Submit Assessment";
   }
-
-} else {
-  retakeDiv.style.display='block';
-}
-
-  }catch(e){
-    resultsDiv.innerHTML=`<div class="alert-error">❌ Could not submit. Server error.</div>`;
-  }finally{
-    submitBtn.disabled=false;submitBtn.textContent="Submit Assessment";
-  }
 };
 
+/* ---------------- CERTIFICATE ---------------- */
 
-
-// Certificate
-document.getElementById("certificateBtn").onclick=function(){
-  const courseId=new URLSearchParams(window.location.search).get("courseId");
-  window.location.href=`certificate.html?courseId=${courseId}`;
+document.getElementById("certificateBtn").onclick = () => {
+  window.location.href = `certificate.html?courseId=${courseId}`;
 };
 
-// Retake Test
-document.getElementById("retakeBtn").onclick=function(){
-  liveScore=0;currentIndex=0;selections=new Array(assessmentData.questions.length).fill(null);
-  resultsDiv.innerHTML='';certDiv.style.display='none';retakeDiv.style.display='none';
-  document.getElementById('quiz').style.display='block';
-  controls.style.display='flex';
-  renderQuestion(0);
+/* ---------------- RETAKE ---------------- */
+
+document.getElementById("retakeBtn").onclick = () => {
+  // This resets the local quiz only.
+  // A new attempt requires backend permission.
+  alert("Please check with your assessment administrator before attempting again.");
 };
 
-// Start
+/* ---------------- START ---------------- */
+
 fetchQuestions();
+
 </script>
 </body>
 </html>

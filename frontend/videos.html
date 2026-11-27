@@ -317,6 +317,15 @@ body {
       <button id="startAssessmentBtn" style="display:none;">Start Assessment</button>
       <p id="assessmentStatus">Loading assessment...</p>
     </div>
+    <div id="courseProgress" style="margin-bottom:20px;">
+      <p id="progressText">Course Progress: 0%</p>
+      <div class="progress-bar-bg" style="height:12px;">
+        <div id="overallProgressBar"
+             class="progress-bar-fill"
+             style="height:12px;width:0%;transition:width .3s;">
+        </div>
+      </div>
+    </div>
 
     <div class="section">
       <h2>🎥 Course Videos</h2>
@@ -340,87 +349,262 @@ body {
 </div> -->
 
 <script>
+
 const API_BASE = "https://e-learning-platform-v5u2.onrender.com/api";
+const SERVER_BASE = "https://e-learning-platform-v5u2.onrender.com";
+
 const courseId = new URLSearchParams(window.location.search).get("course");
 const studentId = localStorage.getItem("studentId");
 
-if (!studentId) window.location.href = "login.html";
+let totalVideos = 0;
+let completedVideos = 0;
 
-/* ✅ Profile */
+if (!studentId) {
+  window.location.href = "login.html";
+}
+
+if (!courseId) {
+  alert("Course not found. Please select a course again.");
+  window.location.href = "after-login.html";
+}
+
+/* ---------------- PROFILE ---------------- */
+
 async function loadProfile() {
   try {
     const res = await fetch(`${API_BASE}/students/${studentId}`);
     const student = await res.json();
+
+    if (!res.ok) throw new Error(student.message);
+
     document.getElementById("welcomeName").textContent =
       `Welcome, ${student.name || "Student"}`;
-    document.getElementById("profileImage").src =
-      student.profileImage ? `${API_BASE}${student.profileImage}` : "default-profile.png";
-  } catch (err) { console.warn(err); }
+
+  } catch (err) {
+    console.error("Profile loading error:", err);
+  }
 }
 
-/* ✅ Course */
+/* ---------------- PROGRESS UI ---------------- */
+
+function updateProgressUI() {
+  const percentage = totalVideos > 0
+    ? Math.round((completedVideos / totalVideos) * 100)
+    : 0;
+
+  document.getElementById("progressText").textContent =
+    `Course Progress: ${percentage}% (${completedVideos}/${totalVideos} videos completed)`;
+
+  document.getElementById("overallProgressBar").style.width =
+    `${percentage}%`;
+}
+
+/* ---------------- VIDEO PROGRESS ---------------- */
+
+async function markVideoCompleted(videoId, videoElement) {
+  if (videoElement.dataset.completed === "true") return;
+
+  try {
+    const res = await fetch(`${API_BASE}/user/${studentId}/progress`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        courseId: courseId,
+        videoId: videoId
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      console.error("Progress update failed:", data.message);
+      return;
+    }
+
+    videoElement.dataset.completed = "true";
+
+    completedVideos = data.completedVideos;
+    totalVideos = data.totalVideos;
+
+    updateProgressUI();
+
+    // Refresh assessment lock/unlock status
+    await loadAssessment();
+
+  } catch (err) {
+    console.error("Video progress error:", err);
+  }
+}
+
+/* ---------------- COURSE & VIDEOS ---------------- */
+
 async function loadCourse() {
   try {
     const res = await fetch(`${API_BASE}/courses/${courseId}`);
     const course = await res.json();
 
-    document.getElementById("courseTitle").textContent = course.title;
+    if (!res.ok) {
+      throw new Error(course.message || "Course loading failed");
+    }
 
+    document.getElementById("courseTitle").textContent =
+      course.title || "Course";
 
-    const vid = document.getElementById("video-list");
-    vid.innerHTML = course.videos?.length ?
-      course.videos.map(v=>`
-        <div class="card">
-          <div class="card-content">
-            <h3>${v.title}</h3>
-            <video controls src="https://e-learning-platform-v5u2.onrender.com${v.url}"></video>
-            <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
-          </div>
-        </div>`).join("") :
-      "<p>No videos uploaded.</p>";
+    const videos = course.videos || [];
+    totalVideos = videos.length;
 
-    const ppt = document.getElementById("ppt-list");
-    ppt.innerHTML = course.pptFiles?.length ?
-      course.pptFiles.map(p=>`
-        <div class="card">
-          <div class="card-content">
-            <h3>${p.filename}</h3>
-            <a class="download-link" target="_blank" href="https://e-learning-platform-v5u2.onrender.com${p.url}">Download PPT</a>
-          </div>
-        </div>`).join("") :
-      "<p>No PPT files.</p>";
-  } catch {}
+    // Get saved progress from student profile
+    const studentRes = await fetch(`${API_BASE}/students/${studentId}`);
+    const student = await studentRes.json();
+
+    const enrolledCourse = (student.enrolledCourses || []).find(
+      c => String(c._id) === String(courseId)
+    );
+
+    completedVideos = enrolledCourse
+      ? enrolledCourse.completedVideos || 0
+      : 0;
+
+    updateProgressUI();
+
+    const videoList = document.getElementById("video-list");
+
+    videoList.innerHTML = videos.length
+      ? videos.map((v, index) => {
+          const videoUrl = v.url.startsWith("http")
+            ? v.url
+            : `${SERVER_BASE}${v.url}`;
+
+          return `
+            <div class="card">
+              <div class="card-content">
+                <h3>${v.title || `Video ${index + 1}`}</h3>
+
+                <video
+                  controls
+                  preload="metadata"
+                  data-video-id="${v._id}"
+                  src="${videoUrl}">
+                </video>
+
+                <p class="video-status" id="videoStatus${index}">
+                  Video ${index + 1}
+                </p>
+              </div>
+            </div>
+          `;
+        }).join("")
+      : "<p>No videos uploaded.</p>";
+
+    // Attach video completion events
+    videoList.querySelectorAll("video").forEach((video, index) => {
+      const videoId = video.dataset.videoId;
+
+      video.addEventListener("ended", async () => {
+        await markVideoCompleted(videoId, video);
+
+        if (video.dataset.completed === "true") {
+          document.getElementById(`videoStatus${index}`).textContent =
+            "✓ Completed";
+        }
+      });
+    });
+
+    // PPT download only - no completion tracking
+    const pptList = document.getElementById("ppt-list");
+
+    pptList.innerHTML = course.pptFiles?.length
+      ? course.pptFiles.map(p => {
+          const pptUrl = p.url.startsWith("http")
+            ? p.url
+            : `${SERVER_BASE}${p.url}`;
+
+          return `
+            <div class="card">
+              <div class="card-content">
+                <h3>${p.filename}</h3>
+                <a class="download-link"
+                   target="_blank"
+                   rel="noopener"
+                   href="${pptUrl}">
+                  Download PPT
+                </a>
+              </div>
+            </div>
+          `;
+        }).join("")
+      : "<p>No PPT files.</p>";
+
+  } catch (err) {
+    console.error("Course loading error:", err);
+    document.getElementById("video-list").textContent =
+      "Unable to load course videos.";
+  }
 }
 
-/* ✅ Assessment */
+/* ---------------- ASSESSMENT ---------------- */
+
 async function loadAssessment() {
   const btn = document.getElementById("startAssessmentBtn");
   const msg = document.getElementById("assessmentStatus");
-  
+
+  btn.style.display = "none";
+  btn.disabled = true;
+  msg.style.display = "block";
+  msg.textContent = "Checking course progress...";
+
   try {
-    const res = await fetch(`${API_BASE}/assessments/student/${courseId}`);
+    const res = await fetch(
+      `${API_BASE}/assessments/student/${courseId}?studentId=${encodeURIComponent(studentId)}`
+    );
+
     const data = await res.json();
 
-    if (data.success && data.questions?.length > 0) {
-      msg.style.display = "none";
+    if (res.ok && data.success && data.questions?.length > 0) {
+      msg.textContent = "Your assessment is unlocked!";
+
       btn.style.display = "inline-block";
-      btn.onclick = ()=> window.location.href = `stuquiz.html?courseId=${courseId}`;
+      btn.disabled = false;
+
+      btn.onclick = () => {
+        window.location.href =
+          `stuquiz.html?courseId=${courseId}`;
+      };
+
+    } else if (res.status === 403) {
+      msg.textContent =
+        `Assessment locked. Complete more than 90% of the course videos. Current progress: ${data.progressPercentage || 0}%.`;
+
+    } else if (data.message === "No assessment found for this course.") {
+      msg.textContent = data.message;
+
+    } else {
+      msg.textContent = data.message || "Assessment is currently unavailable.";
     }
-  } catch{}
+
+  } catch (err) {
+    console.error("Assessment loading error:", err);
+    msg.textContent = "Unable to check assessment status.";
+  }
 }
+
+/* ---------------- LOGOUT ---------------- */
+
 document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "login.html";
+  localStorage.clear();
+  window.location.href = "login.html";
 });
 
+/* ---------------- INIT ---------------- */
 
-
-/* INIT */
-document.addEventListener("DOMContentLoaded", ()=>{
-  loadProfile();
-  loadCourse();
-  loadAssessment();
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadProfile();
+  await loadCourse();
+  await loadAssessment();
 });
+
 </script>
 
 </body>

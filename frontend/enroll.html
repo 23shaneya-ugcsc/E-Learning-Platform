@@ -171,10 +171,16 @@
     const API_BASE = "https://e-learning-platform-v5u2.onrender.com";
 
     function getLoggedInUser() {
-      const user = JSON.parse(localStorage.getItem("user"));
-      return user ? { fullName: user.username, email: user.email, _id: user.id } : null;
-    }
+    const user = JSON.parse(localStorage.getItem("user"));
 
+    if (!user) return null;
+
+    return {
+        fullName: user.fullname || user.fullName || user.username || "",
+        email: user.email || "",
+        _id: user.id || user._id
+    };
+}
     async function loadCourses() {
       try {
         const res = await fetch(`${API_BASE}/api/courses`);

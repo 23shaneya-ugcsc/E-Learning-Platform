@@ -10,12 +10,25 @@ const userSchema = new mongoose.Schema({
   role: { type: String, default: "student" },
   password: String,
   status: { type: String, enum: ["active", "removed"], default: "active" },
-  videoProgress: [
-    {
-      courseId: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
-      watched: { type: Boolean, default: false }
-    }
-  ]
+  
+videoProgress: [
+  {
+    courseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course"
+    },
+    watched: {
+      type: Boolean,
+      default: false
+    },
+    watchedVideos: [
+      {
+        type: mongoose.Schema.Types.ObjectId
+      }
+    ]
+  }
+]
+
 });
 
 module.exports = mongoose.model("User", userSchema);

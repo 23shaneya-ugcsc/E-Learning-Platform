@@ -208,6 +208,35 @@ router.put("/:id", upload.single("image"), async (req, res) => {
   }
 });
 
+// Check whether student is already enrolled
+router.get("/:courseId/enrollment-status", async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({
+        message: "User ID is required"
+      });
+    }
+
+    const enrollment = await Enrollment.findOne({
+      userId,
+      courseId
+    });
+
+    res.json({
+      isEnrolled: !!enrollment
+    });
+
+  } catch (err) {
+    console.error("Enrollment status error:", err);
+    res.status(500).json({
+      message: "Failed to check enrollment status"
+    });
+  }
+});
+
 router.post("/:courseId/enroll", async (req, res) => {
   try {
     const { courseId } = req.params;
